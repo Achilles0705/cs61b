@@ -14,6 +14,7 @@ public class IntListExercises {
             head.first += c;
             head = head.rest;
         }
+        head.first += c;
     }
 
     /**
@@ -31,6 +32,7 @@ public class IntListExercises {
             }
             p = p.rest;
         }
+        p.first = 0;
     }
 
     /** Returns the max value in the IntList starting at L. */
@@ -71,12 +73,17 @@ public class IntListExercises {
             return false;
         }
 
-        boolean currElemIsPrime = Primes.isPrime(lst.first);
-
-        if (currElemIsPrime) {
-            lst.first *= lst.first;
+        IntList p = lst;
+        boolean anyPrimeSquared = false;
+        while (p != null) {
+            boolean currElemIsPrime = Primes.isPrime(p.first);
+            if (currElemIsPrime) {
+                p.first *= p.first;
+                anyPrimeSquared = true;
+            }
+            p = p.rest;
         }
-
-        return currElemIsPrime || squarePrimes(lst.rest);
+        return anyPrimeSquared;
     }
+
 }
