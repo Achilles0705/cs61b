@@ -93,27 +93,72 @@ public class Model extends Observable {
         checkGameOver();
         setChanged();
     }
-
     /** Tilt the board toward SIDE. Return true iff this changes the board.
-     *
+     * 将板子向侧面倾斜。如果这改变了板子，则返回 true。
      * 1. If two Tile objects are adjacent in the direction of motion and have
      *    the same value, they are merged into one Tile of twice the original
      *    value and that new value is added to the score instance variable
+     *    如果两个 Tile 对象在运动方向上相邻且具有相同的值，则它们将合并为一个原值两倍的 Tile，并将新值添加到 score 实例变量中
      * 2. A tile that is the result of a merge will not merge again on that
      *    tilt. So each move, every tile will only ever be part of at most one
      *    merge (perhaps zero).
+     *    合并后的图块不会在该倾斜处再次合并。因此，每次移动时，每个图块最多只能成为一次合并的一部分（可能为零）。
      * 3. When three adjacent tiles in the direction of motion have the same
      *    value, then the leading two tiles in the direction of motion merge,
      *    and the trailing tile does not.
+     *    当运动方向上的三个相邻的图块具有相同的值时，则运动方向上的前两个图块会合并，而后一个图块则不会合并。
      * */
     public boolean tilt(Side side) {
         boolean changed;
         changed = false;
-
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        //向侧面倾斜。如果棋盘发生变化，则将改变的局部变量设置为 true。
 
+        if(side == Side.EAST){
+            board.setViewingPerspective(Side.EAST);
+        }
+        if(side == Side.SOUTH){
+            board.setViewingPerspective(Side.SOUTH);
+        }
+        if(side == Side.WEST){
+            board.setViewingPerspective(Side.WEST);
+        }
+
+
+        for(int i = 3; i >= 0; i--){   //不考虑行
+            boolean []book=new boolean[4];
+            for(int j = 3; j >= 0; j--){   //只考虑单列
+                if(board.tile(i,j) != null && j != 3){
+                    int j2 = j + 1;
+                    Tile t = board.tile(i, j);
+                    while(j2 < 3 && board.tile(i, j2) == null){
+                        j2++;
+                    }
+                    if(j2 == 3 && board.tile(i, j2) == null) {   //上面全是0
+                        board.move(i, 3, t);
+                        changed = true;
+                    }
+                    else if(t.value() == board.tile(i, j2).value()){   //上面最近的一个相等
+                        if(!book[j2]) {
+                            board.move(i, j2, t);
+                            book[j2] = true;
+                            score += 2 * t.value();
+                        }
+                        else{
+                            board.move(i,j2-1,t);
+                        }
+                        changed = true;
+                    }
+                    else if(j2 != j){ //上面最近的一个不等 + 不挨着，要是挨着直接没变化
+                        board.move(i, j2 - 1, t);
+                        changed = true;
+                    }
+                }
+            }
+        }
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
@@ -138,7 +183,16 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
-        return false;
+        boolean judge = false;
+        for(int i = 0; i < 4; i++){
+            for(int j = 0; j < 4; j++){
+                if(b.tile(i,j) == null){
+                    judge = true;
+                    break;
+                }
+            }
+        }
+        return judge;
     }
 
     /**
@@ -148,7 +202,27 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
-        return false;
+        /*if (emptySpaceExists(b)) {
+            return false;
+        }*/
+        //int cnt = 0;
+        boolean judge = false;
+        for(int i = 0; i < 4; i++){
+            for(int j = 0; j < 4; j++){
+                if(b.tile(i,j) != null){
+                    if(b.tile(i,j).value() == MAX_PIECE){
+                        judge = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return judge;
+    }
+
+    public static boolean borderJudge(int x){
+        if(x < 0 || x > 3) return false;
+        return true;
     }
 
     /**
@@ -159,7 +233,26 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
-        return false;
+        boolean judge = false;
+        if(emptySpaceExists(b)){
+            return true;
+        }
+
+        int [][] directions = {{-1,0}, {1,0}, {0,-1}, {0,1}};
+
+        for(int i = 0; i < 4; i++){
+            for(int j = 0; j < 4; j++){
+                for(int t = 0; t < 4; t++){
+                    int newRow = i + directions[t][0];
+                    int newColumn = j + directions[t][1];
+                    if(borderJudge(newRow) && borderJudge(newColumn)){
+                        if(b.tile(i,j).value() == b.tile(newRow,newColumn).value())
+                            return true;
+                    }
+                }
+            }
+        }
+        return judge;
     }
 
 
