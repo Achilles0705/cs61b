@@ -18,21 +18,27 @@ public class Game {
     boolean playing() {
         return _playing;
     }
-
     /** Clear the board and play one game, until receiving a quit or
      *  new-game request.  Update the viewer with each added tile or
      *  change in the board from tilting. */
+    //boolean flag = false;
     void playGame() {
         _model.clear();
         _model.addTile(getValidNewTile());
         while (_playing) {
+            boolean moved;
+            moved = false;
             if (!_model.gameOver()) {
                 _model.addTile(getValidNewTile());
                 _model.notifyObservers();
             }
-
-            boolean moved;
-            moved = false;
+            /*if (!_model.gameOver() && !flag) {
+                _model.addTile(getValidNewTile());
+                _model.notifyObservers();
+                flag = true;
+            }*/
+            //boolean moved;
+            //moved = false;
             while (!moved) {
                 String cmnd = _source.getKey();
                 switch (cmnd) {
@@ -43,15 +49,23 @@ public class Game {
                         return;
                     case "Up": case "Down": case "Left": case "Right":
                     case "\u2190": case "\u2191": case "\u2192": case "\u2193":
+                        //if (!_model.gameOver() && _model.tilt(keyToSide(cmnd)) && flag) {
                         if (!_model.gameOver() && _model.tilt(keyToSide(cmnd))) {
+                            //_model.addTile(getValidNewTile());
                             _model.notifyObservers(cmnd);
                             moved = true;
+                        //} else if (!_model.gameOver() && !flag) {
+                            //_model.notifyObservers(cmnd);
+                            //moved = true;
                         }
+                        /*if (!_model.gameOver() && flag && moved) {
+                            _model.addTile(getValidNewTile());
+                            _model.notifyObservers();
+                        }*/
                         break;
                     default:
                         break;
                 }
-
             }
         }
     }

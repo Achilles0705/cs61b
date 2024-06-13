@@ -23,8 +23,10 @@ class BoardWidget extends Pad {
 
     /** Colors of empty squares and grid lines. */
     static final Color
-        EMPTY_SQUARE_COLOR = new Color(205, 192, 176),
-        BAR_COLOR = new Color(184, 173, 158);
+        //EMPTY_SQUARE_COLOR = new Color(205, 192, 176),
+        EMPTY_SQUARE_COLOR = new Color(214, 206, 194),
+        //BAR_COLOR = new Color(184, 173, 158);
+        BAR_COLOR = new Color(187, 173, 160);
 
     /** Bar width separating tiles and length of tile's side
      *  (pixels). */
@@ -47,10 +49,12 @@ class BoardWidget extends Pad {
     static final Font OVERLAY_FONT = new Font("SansSerif", 1, 64);
 
     /** Wait between animation steps (in milliseconds). */
-    static final int TICK = 10;
+    //static final int TICK = 10;
+    static final int TICK = 5;
 
     /** Amount to move per second (in rows/columns). */
-    static final float MOVE_DELTA = 10.0f;
+    //static final float MOVE_DELTA = 10.0f;
+    static final float MOVE_DELTA = 20.0f;
 
     /** Fractional increase in size for "bloom effect". */
     static final float BLOOM_FACTOR = 0.1f;
