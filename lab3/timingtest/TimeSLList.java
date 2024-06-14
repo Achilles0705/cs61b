@@ -27,7 +27,8 @@ public class TimeSLList {
         AList<Integer> N = new AList<>();
         AList<Double> T = new AList<>();
         AList<Integer> oop = new AList<>();
-        for(int i = 1000; i <= 128000; i *= 2){
+        AList<Integer> Ns = new AList<>();
+        /*for(int i = 1000; i <= 128000; i *= 2){
             N.addLast(i);
             oop.addLast(10000);
         }
@@ -40,6 +41,22 @@ public class TimeSLList {
             L.getLast();
             T.addLast(sw.elapsedTime());
         }
-        printTimingTable(N, T, oop);
+        printTimingTable(N, T, oop);*/
+        int cnt = 0;
+        //Stopwatch sw = new Stopwatch();
+        for(int i = 0; i <= 128000; i++) {
+            L.addLast(i);
+            if(i == Math.pow(2, cnt) * 1000){
+                Stopwatch sw = new Stopwatch();
+                for(int j = 0; j <= 10000; j++){
+                    L.getLast();
+                }
+                T.addLast(sw.elapsedTime());
+                cnt++;
+                Ns.addLast(i);
+                oop.addLast(10000);
+            }
+        }
+        printTimingTable(Ns, T, oop);
     }
 }
