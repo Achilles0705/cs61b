@@ -37,7 +37,7 @@ public class Main {
         GUI gui;
 
         //gui = new GUI("2048 61B", model);
-        gui = new GUI("2048游戏 永健制作", model);
+        gui = new GUI("2048游戏 不能通关的是猪🐖", model);
         gui.display(true);
 
         InputSource inp;
