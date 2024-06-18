@@ -35,7 +35,7 @@ public class BuggyAList<Item> {
 
     /** Inserts X into the back of the list. */
     public void addLast(Item x) {
-        if (size == items.length) {
+        if (size == items.length) { //size是元素个数，items.length是数组长度
             resize(size * 2);
         }
         items[size] = x;

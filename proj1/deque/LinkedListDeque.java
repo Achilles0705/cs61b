@@ -2,6 +2,7 @@ package deque;
 
 
 import java.util.Deque;
+import java.util.Iterator;
 
 public class LinkedListDeque<T> {
     private class IntNode {
@@ -55,11 +56,13 @@ public class LinkedListDeque<T> {
         return (sentinelBegin.next == sentinelEnd);
     }
 
-    public int size() { return size; }
+    public int size() {
+        return size;
+    }
 
     public void printDeque() {
         IntNode p = sentinelBegin;
-        while(p != null) {
+        while (p != null) {
             System.out.print(p.item + " ");
             p = p.next;
         }
@@ -67,13 +70,13 @@ public class LinkedListDeque<T> {
     }
 
     public T removeFirst() {
-        if(size == 0) { //空
+        if (size == 0) { //空
             return null;
         }
         size--;
         IntNode p = sentinelBegin.next;
         T tmp = p.item;
-        if(size == 0) {    //一个元素
+        if (size == 0) {    //一个元素
             sentinelBegin.next = sentinelEnd;
             sentinelEnd.prev = sentinelBegin;
             return tmp;
@@ -84,13 +87,13 @@ public class LinkedListDeque<T> {
     }
 
     public T removeLast() {
-        if(size == 0) { //空
+        if (size == 0) { //空
             return null;
         }
         size--;
         IntNode p = sentinelEnd.prev;
         T tmp = p.item;
-        if(size == 0) {    //一个元素
+        if (size == 0) {    //一个元素
             sentinelBegin.next = sentinelEnd;
             sentinelEnd.prev = sentinelBegin;
             return tmp;
@@ -109,16 +112,35 @@ public class LinkedListDeque<T> {
         return p.item;
     }
 
-    public T getRecursive(IntNode p, int index)  {
-        if(index == 0) {
+    public T getRecursive(IntNode p, int index) {
+        if (index == 0) {
             return p.item;
         }
         return getRecursive(p.next, index-1);
     }
 
-    /*public Iterator<T> iterator() {
+    public Iterator<T> iterator() {
+        return new LLIterator();
+    }
 
-    }*/
+    private class LLIterator implements Iterator<T> {
+        //private int pos;
+        IntNode p;
+        public LLIterator() {
+            IntNode p = sentinelBegin;
+        }
+
+        public boolean hasNext() {
+            return p.next != null;
+        }
+
+        public T next() {
+            T returnItem = p.next.item;
+            p = p.next;
+            return returnItem;
+        }
+
+    }
 
     /*public boolean equals(Object o) {
         if(!(o instanceof Deque)){
@@ -133,5 +155,13 @@ public class LinkedListDeque<T> {
             if(o.equals())
         }
     }*/
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof LinkedListDeque tmp) {
+            return this.size == tmp.size;
+        }
+        return false;
+    }
 
 }
