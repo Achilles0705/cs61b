@@ -1,13 +1,10 @@
 package gh2;
-import deque.Deque;
-import deque.LinkedListDeque;
 import edu.princeton.cs.algs4.StdAudio;
 import edu.princeton.cs.algs4.StdDraw;
 
 public class GuitarHero {
 
 
-    private static Deque<Double> CONCERT = new LinkedListDeque<>();
     private static final int totalCONCERT = 37;
     private static final String keyboard = "q2we4r5ty7u8i9op-[=zxdcfvgbnjmk,.;/' ";
     private static GuitarString[] strings = new GuitarString[totalCONCERT];
@@ -16,7 +13,6 @@ public class GuitarHero {
         double currentCONCERT;
         for(int i = 0; i < totalCONCERT; i++) {
             currentCONCERT = 440.0 * Math.pow(2, (i - 24.0) / 12.0);
-            CONCERT.addLast(currentCONCERT);
             strings[i] = new GuitarString(currentCONCERT);
         }
     }
