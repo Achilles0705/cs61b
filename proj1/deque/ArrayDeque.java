@@ -1,9 +1,8 @@
 package deque;
 
-import java.util.Deque;
 import java.util.Iterator;
 
-public class ArrayDeque<T> {
+public class ArrayDeque<T> implements Deque<T> {
     public T[] items;
     public int size;
     //private int arraySize;
@@ -18,6 +17,7 @@ public class ArrayDeque<T> {
         //lastIndex = arraySize/2;
     }
 
+    @Override
     public void addFirst(T item) {
         if (size == items.length) {
             resize(size * 2);
@@ -36,6 +36,7 @@ public class ArrayDeque<T> {
         size++;
     }
 
+    @Override
     public void addLast(T item) {
         if (size == items.length) {
             resize(size * 2);
@@ -54,17 +55,19 @@ public class ArrayDeque<T> {
         size++;
     }
 
-    public boolean isEmpty() {
+    /*public boolean isEmpty() {
         if (items[0] == null && items[items.length - 1] == null && items[items.length/2 - 1] == null && items[items.length/2] == null) {
             return true;
         }
         return false;
-    }
+    }*/
 
+    @Override
     public int size() {
         return size;
     }
 
+    @Override
     public void printDeque() {  //图一
         if (firstIndex < lastIndex) {
             for (int i = firstIndex; i <= lastIndex; i++) {
@@ -118,6 +121,7 @@ public class ArrayDeque<T> {
         //arraySize = capacity;
     }
 
+    @Override
     public T removeFirst() {
         if (size == 0) { //空
             return null;
@@ -134,6 +138,7 @@ public class ArrayDeque<T> {
         return x;
     }
 
+    @Override
     public T removeLast() {
         if (size == 0) { //空
             return null;
@@ -150,6 +155,7 @@ public class ArrayDeque<T> {
         return x;
     }
 
+    @Override
     public T get(int index) {
         return items[index];
     }

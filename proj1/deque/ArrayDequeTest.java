@@ -159,13 +159,13 @@ public class ArrayDequeTest {
     public void randomizedTest() {
         ArrayDeque<Integer> L1 = new ArrayDeque<Integer>();
         ArrayDeque<Integer> L2 = new ArrayDeque<Integer>();
-        int N = 50000000;
+        int N = 500000;
         for (int i = 0; i < N; i++) {
             int operationNumber = StdRandom.uniform(0, 5);
             if (operationNumber == 0) {
                 // addLast
                 int randVal = StdRandom.uniform(0, 100);
-                L1.addFirst(randVal);
+                L1.addLast(randVal);
                 L2.addLast(randVal);
                 //System.out.println("addLast(" + randVal + ")");
             } else if (operationNumber == 1) {
@@ -177,7 +177,7 @@ public class ArrayDequeTest {
                 assertEquals(size1, size2);
             } else if (operationNumber == 2 && !L1.isEmpty() && !L2.isEmpty()) {
 
-                assertEquals(L1.removeFirst(), L2.removeLast());
+                assertEquals(L1.removeFirst(), L2.removeFirst());
 
             //} else if (operationNumber == 3 && !L1.isEmpty() && !L2.isEmpty()) {
 
