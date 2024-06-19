@@ -1,11 +1,9 @@
 package gh2;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.LinkedList;
+import deque.LinkedListDeque;
 
 // TODO: uncomment the following import once you're ready to start this portion
-//import deque.Deque;
+import deque.Deque;
 // TODO: maybe more imports
 
 //Note: This file will not compile until you complete the Deque implementations
@@ -28,14 +26,13 @@ public class GuitarString {
         //       better accuracy, use the Math.round() function before casting.
         //       Your should initially fill your buffer array with zeros.
         bufferSize = (int)Math.round(SR / frequency);
-        buffer = new ArrayDeque<>(bufferSize);
+        //buffer = new ArrayDeque<>(bufferSize);
+        buffer = new LinkedListDeque<>();
 
         for (int i = 0; i < bufferSize; i++) {
             buffer.addLast(0.0);
         }
     }
-
-
 
     /* Pluck the guitar string by replacing the buffer with white noise. */
     public void pluck() {
@@ -65,7 +62,7 @@ public class GuitarString {
         //       **Do not call StdAudio.play().**
 
             double first = buffer.removeFirst();
-            double second = buffer.peek();
+            double second = buffer.get(1);
             double tmp = (first + second) * 0.996 * 0.5;
             buffer.addLast(tmp);
     }
@@ -73,7 +70,7 @@ public class GuitarString {
     /* Return the double at the front of the buffer. */
     public double sample() {
         // TODO: Return the correct thing.
-        return buffer.peek();
+        return buffer.get(1);
     }
 }
     // TODO: Remove all comments that say TODO when you're done.
