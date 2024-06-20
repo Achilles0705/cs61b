@@ -12,7 +12,7 @@ public class Harp {
     private Deque<Double> buffer;
 
     public Harp(double frequency) {
-        bufferSize = (int)Math.round(SR / frequency) / 2;
+        bufferSize = (int) Math.round(SR / frequency) / 2;
         buffer = new LinkedListDeque<>();
         for (int i = 0; i < bufferSize; i++) {
             buffer.addLast(0.0);

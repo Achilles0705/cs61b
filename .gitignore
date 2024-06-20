@@ -1,6 +1,16 @@
+# Ignore all .idea directories
 .idea/
-*.iml
-out/
-lib/
+
+# Ignore specific files and directories
+lab1/lab1.iml
+lab1/out/
 lab2/target/
+lab3/target/
+lib/
+out/
+proj0/out/
+proj0/proj0.iml
+proj1/target/
+proj1ec/.idea/
+
 .gitignore

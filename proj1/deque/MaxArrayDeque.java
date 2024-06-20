@@ -26,8 +26,7 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> {
             if (currentElement != null) {
                 if (maxElement == null) {
                     maxElement = currentElement;
-                }
-                else if (c.compare(currentElement, maxElement) > 0) {
+                } else if (c.compare(currentElement, maxElement) > 0) {
                     maxElement = currentElement;
                 }
             }
@@ -35,4 +34,3 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> {
         return maxElement;
     }
 }
-

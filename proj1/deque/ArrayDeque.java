@@ -2,9 +2,9 @@ package deque;
 
 import java.util.Iterator;
 
-public class ArrayDeque<T> implements Deque<T> {
-    public T[] items;
-    public int size;
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
+    private T[] items;
+    private int size;
     //private int arraySize;
     private int firstIndex;
     private int lastIndex;
@@ -32,10 +32,10 @@ public class ArrayDeque<T> implements Deque<T> {
             resize(size * 2);
         }
         if (size == 0) {
-            items[items.length/2 - 1] = item;
-            firstIndex = items.length/2 - 1;
-            lastIndex = items.length/2 - 1;
-        } else if(firstIndex == 0) {
+            items[items.length / 2 - 1] = item;
+            firstIndex = items.length / 2 - 1;
+            lastIndex = items.length / 2 - 1;
+        } else if (firstIndex == 0) {
             //items[size - 1] = item;
             items[items.length - 1] = item;
             //firstIndex = size - 1;
@@ -53,10 +53,10 @@ public class ArrayDeque<T> implements Deque<T> {
             resize(size * 2);
         }
         if (size == 0) {
-            items[items.length/2] = item;
-            firstIndex = items.length/2;
-            lastIndex = items.length/2;
-        } else if(lastIndex == items.length - 1) {
+            items[items.length / 2] = item;
+            firstIndex = items.length / 2;
+            lastIndex = items.length / 2;
+        } else if (lastIndex == items.length - 1) {
             items[0] = item;
             lastIndex = 0;
         } else {
@@ -67,7 +67,8 @@ public class ArrayDeque<T> implements Deque<T> {
     }
 
     /*public boolean isEmpty() {
-        if (items[0] == null && items[items.length - 1] == null && items[items.length/2 - 1] == null && items[items.length/2] == null) {
+        if (items[0] == null && items[items.length - 1] == null &&
+         items[items.length/2 - 1] == null && items[items.length/2] == null) {
             return true;
         }
         return false;
@@ -99,13 +100,13 @@ public class ArrayDeque<T> implements Deque<T> {
         return items.length;
     }
 
-    public void checkSize() {
+    private void checkSize() {
         if (items.length > 4 * size && items.length >= 32) {
             resize(items.length / 2);
         }
     }
 
-    public void resize(int capacity) {  //图1的扩展方法
+    private void resize(int capacity) {  //图1的扩展方法
         T[] a = (T[]) new Object[capacity];
         int tmpFirst = 0;
         int tmpLast = capacity - 1;
@@ -171,7 +172,7 @@ public class ArrayDeque<T> implements Deque<T> {
         return items[arrayIndex(index)];
     }
 
-    public int getLastIndex() {
+    private int getLastIndex() {
         return lastIndex;
     }
 
@@ -181,7 +182,7 @@ public class ArrayDeque<T> implements Deque<T> {
 
     private class ADIterator implements Iterator<T> {
         private int pos;
-        public ADIterator() {
+        ADIterator() {
             pos = 0;
         }
 
@@ -204,18 +205,23 @@ public class ArrayDeque<T> implements Deque<T> {
         return false;
     }*/
     public boolean equals(Object o) {
-        if (o == null)
+        if (o == null) {
             return false;
-        if (o == this)
+        }
+        if (o == this) {
             return true;
-        if (!(o instanceof Deque))
+        }
+        if (!(o instanceof Deque)) {
             return false;
+        }
         Deque<T> oc = (Deque<T>) o;
-        if (oc.size() != this.size)
+        if (oc.size() != this.size) {
             return false;
+        }
         for (int i = 0; i < size; i++) {
-            if (!(this.get(i).equals(oc.get(i))))
+            if (!(this.get(i).equals(oc.get(i)))) {
                 return false;
+            }
         }
         return true;
     }
