@@ -186,11 +186,27 @@ public class ArrayDeque<T> implements Deque<T> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    /*public boolean equals(Object o) {
         if (o instanceof ArrayDeque tmp) {
             return this.size == tmp.size;
         }
         return false;
+    }*/
+    public boolean equals(Object o) {
+        if (o == null)
+            return false;
+        if (o == this)
+            return true;
+        if (!(o instanceof Deque))
+            return false;
+        Deque<T> oc = (Deque<T>) o;
+        if (oc.size() != this.size)
+            return false;
+        for (int i = 0; i < size; i++) {
+            if (!(this.get(i).equals(oc.get(i))))
+                return false;
+        }
+        return true;
     }
 
 }
