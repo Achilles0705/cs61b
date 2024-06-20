@@ -159,19 +159,19 @@ public class ArrayDequeTest {
     public void autoGrader() {
         System.out.println("Make sure to uncomment the lines below (and delete this print statement).");
         ArrayDeque<Integer> lld1 = new ArrayDeque<Integer>();
-        for(int i = 0; i < 3; i++) {
-            lld1.addLast(i);
+        for(int i = 8; i >= 0; i--) {
+            lld1.addFirst(i);
         }
-        lld1.addFirst(10);
-        assertEquals(10, (double)lld1.get(0), 0.0);
-        assertEquals(1, (double)lld1.get(2), 0.0);
-
         System.out.println();
-        lld1.removeFirst();
-        lld1.removeFirst();
-        lld1.removeFirst();
-        lld1.removeFirst();
         assertEquals(0, (double)lld1.removeFirst(), 0.0);
+        assertEquals(1, (double)lld1.removeFirst(), 0.0);
+        assertEquals(2, (double)lld1.removeFirst(), 0.0);
+        assertEquals(3, (double)lld1.removeFirst(), 0.0);
+        assertEquals(4, (double)lld1.removeFirst(), 0.0);
+        assertEquals(5, (double)lld1.removeFirst(), 0.0);
+        assertEquals(6, (double)lld1.removeFirst(), 0.0);
+        assertEquals(7, (double)lld1.removeFirst(), 0.0);
+        assertEquals(8, (double)lld1.removeFirst(), 0.0);
     }
 
     @Test

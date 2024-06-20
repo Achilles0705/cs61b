@@ -36,8 +36,10 @@ public class ArrayDeque<T> implements Deque<T> {
             firstIndex = items.length/2 - 1;
             lastIndex = items.length/2 - 1;
         } else if(firstIndex == 0) {
-            items[size - 1] = item;
-            firstIndex = size - 1;
+            //items[size - 1] = item;
+            items[items.length - 1] = item;
+            //firstIndex = size - 1;
+            firstIndex = items.length - 1;
         } else {
             items[firstIndex - 1] = item;
             firstIndex--;
