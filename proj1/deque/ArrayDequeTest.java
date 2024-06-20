@@ -156,6 +156,25 @@ public class ArrayDequeTest {
 
 
     @Test
+    public void autoGrader() {
+        System.out.println("Make sure to uncomment the lines below (and delete this print statement).");
+        ArrayDeque<Integer> lld1 = new ArrayDeque<Integer>();
+        for(int i = 0; i < 3; i++) {
+            lld1.addLast(i);
+        }
+        lld1.addFirst(10);
+        assertEquals(10, (double)lld1.get(0), 0.0);
+        assertEquals(1, (double)lld1.get(2), 0.0);
+
+        System.out.println();
+        lld1.removeFirst();
+        lld1.removeFirst();
+        lld1.removeFirst();
+        lld1.removeFirst();
+        assertEquals(0, (double)lld1.removeFirst(), 0.0);
+    }
+
+    @Test
     public void randomizedTest() {
         ArrayDeque<Integer> L1 = new ArrayDeque<Integer>();
         ArrayDeque<Integer> L2 = new ArrayDeque<Integer>();

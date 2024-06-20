@@ -17,6 +17,15 @@ public class ArrayDeque<T> implements Deque<T> {
         //lastIndex = arraySize/2;
     }
 
+    private int arrayIndex(int index) {
+        if (firstIndex + index >= items.length) {
+            return firstIndex + index - items.length;
+        } else {
+            return firstIndex + index;
+        }
+    }
+
+
     @Override
     public void addFirst(T item) {
         if (size == items.length) {
@@ -146,7 +155,7 @@ public class ArrayDeque<T> implements Deque<T> {
         checkSize();
         T x = items[lastIndex];
         items[lastIndex] = null;
-        if(lastIndex == 0) {
+        if (lastIndex == 0) {
             lastIndex = items.length - 1;
         } else {
             lastIndex--;
@@ -157,7 +166,7 @@ public class ArrayDeque<T> implements Deque<T> {
 
     @Override
     public T get(int index) {
-        return items[index];
+        return items[arrayIndex(index)];
     }
 
     public int getLastIndex() {
