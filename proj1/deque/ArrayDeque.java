@@ -96,9 +96,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         System.out.println();
     }
 
-    public int arraySize() {
+    /*private int arraySize() {
         return items.length;
-    }
+    }*/
 
     private void checkSize() {
         if (items.length > 4 * size && items.length >= 32) {

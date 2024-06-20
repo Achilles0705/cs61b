@@ -13,7 +13,7 @@ public class DrumsHero {
     public static void getStart() {
         double currentCONCERT;
         double baseFrequency = 110.0;
-        for(int i = 0; i < TOTAL_CONCERT; i++) {
+        for (int i = 0; i < TOTAL_CONCERT; i++) {
             currentCONCERT = baseFrequency * Math.pow(2, (i - 18.0) / 12.0);
             strings[i] = new Drums(currentCONCERT);
         }
