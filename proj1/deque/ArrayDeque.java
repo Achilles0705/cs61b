@@ -191,7 +191,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         }
 
         public T next() {
-            T returnItem = items[pos];
+            T returnItem = items[arrayIndex(pos)];
             pos++;
             return returnItem;
         }

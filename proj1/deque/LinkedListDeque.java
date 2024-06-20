@@ -2,7 +2,7 @@ package deque;
 
 import java.util.Iterator;
 
-public class LinkedListDeque<T> implements Deque<T> {
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     private class IntNode {
         private T item;
         private IntNode prev;
@@ -117,34 +117,41 @@ public class LinkedListDeque<T> implements Deque<T> {
         return p.item;
     }
 
-    public T getRecursive(IntNode p, int index) {
+    public T getRecursive(int index) {
+        if (index >= size || index < 0) {
+            return null;
+        }
+        return getRecursiveHelper(sentinelBegin.next, index);
+    }
+
+    private T getRecursiveHelper(IntNode p, int index) {
         if (index == 0) {
             return p.item;
         }
-        return getRecursive(p.next, index - 1);
+        return getRecursiveHelper(p.next, index - 1);
+    }
+
+    private class LLIterator implements Iterator<T> {
+        private int pos;
+        //IntNode p;
+        LLIterator() {
+            //this.p = sentinelBegin.next;
+            pos = 0;
+        }
+
+        public boolean hasNext() {
+            return pos < size;
+        }
+
+        public T next() {
+            T returnItem = get(pos);
+            pos++;
+            return returnItem;
+        }
     }
 
     public Iterator<T> iterator() {
         return new LLIterator();
-    }
-
-    private class LLIterator implements Iterator<T> {
-        //private int pos;
-        IntNode p;
-        LLIterator() {
-            this.p = sentinelBegin.next;
-        }
-
-        public boolean hasNext() {
-            return p.next != null;
-        }
-
-        public T next() {
-            T returnItem = p.next.item;
-            p = p.next;
-            return returnItem;
-        }
-
     }
 
     /*public boolean equals(Object o) {

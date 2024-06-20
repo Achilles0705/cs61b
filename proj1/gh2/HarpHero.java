@@ -35,7 +35,7 @@ public class HarpHero {
             }
             StdAudio.play(sample);
 
-            for(int i = 0; i < TOTAL_CONCERT; i++) {
+            for (int i = 0; i < TOTAL_CONCERT; i++) {
                 strings[i].tic();
             }
 
