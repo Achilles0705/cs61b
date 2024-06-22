@@ -27,12 +27,12 @@ public class TimeAList {
         AList<Double> T = new AList<>();
         AList<Integer> Ns = new AList<>();
         AList<Integer> oop = new AList<>();
-        /*for(int i = 1000; i <= 128000; i *= 2){
+        /*for (int i = 1000; i <= 128000; i *= 2) {
             N.addLast(i);
         }
-        for(int i = 1000; i <= 128000; i *= 2) {
+        for (int i = 1000; i <= 128000; i *= 2) {
             Stopwatch sw = new Stopwatch();
-            for(int j = 0; j <= i; j++) {
+            for (int j = 0; j <= i; j++) {
                 L.addLast(1);
             }
                 T.addLast(sw.elapsedTime());
@@ -40,9 +40,9 @@ public class TimeAList {
         printTimingTable(N, T, N);*/
         int cnt = 0;
         Stopwatch sw = new Stopwatch();
-        for(int i = 0; i <= 128000; i++) {
+        for (int i = 1; i <= 128000; i++) {
             N.addLast(i);
-            if(N.size() == Math.pow(2, cnt) * 1000){
+            if (N.size() == Math.pow(2, cnt) * 1000) {
                 T.addLast(sw.elapsedTime());
                 cnt++;
                 Ns.addLast(N.size());
