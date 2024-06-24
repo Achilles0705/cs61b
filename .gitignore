@@ -12,5 +12,8 @@ proj0/out/
 proj0/proj0.iml
 proj1/target/
 proj1ec/.idea/
+lab2setup/target/
+lab4/target/
+proj1ec/target/
 
 .gitignore
