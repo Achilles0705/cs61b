@@ -118,43 +118,43 @@ public class Model extends Observable {
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
         //向侧面倾斜。如果棋盘发生变化，则将改变的局部变量设置为 true
-        if(side == Side.EAST){
+        if (side == Side.EAST) {
             board.setViewingPerspective(Side.EAST);
         }
-        if(side == Side.SOUTH){
+        if (side == Side.SOUTH) {
             board.setViewingPerspective(Side.SOUTH);
         }
-        if(side == Side.WEST){
+        if (side == Side.WEST) {
             board.setViewingPerspective(Side.WEST);
         }
-        for(int i = BOARD_SIZE - 1; i >= 0; i--){   //不考虑行
+        for (int i = BOARD_SIZE - 1; i >= 0; i--) {   //不考虑行
             boolean []book=new boolean[BOARD_SIZE];
-            for(int j = BOARD_SIZE - 1; j >= 0; j--){   //只考虑单列
-                if(board.tile(i,j) != null && j != BOARD_SIZE - 1){
+            for (int j = BOARD_SIZE - 1; j >= 0; j--) {   //只考虑单列
+                if (board.tile(i,j) != null && j != BOARD_SIZE - 1) {
                     int j2 = j + 1;
                     Tile t = board.tile(i, j);
-                    while(j2 < BOARD_SIZE - 1 && board.tile(i, j2) == null){
+                    while (j2 < BOARD_SIZE - 1 && board.tile(i, j2) == null) {
                         j2++;
                     }
-                    if(j2 == BOARD_SIZE - 1 && board.tile(i, j2) == null) {   //上面全是0
+                    if (j2 == BOARD_SIZE - 1 && board.tile(i, j2) == null) {   //上面全是0
                         board.move(i, BOARD_SIZE - 1, t);
                         changed = true;
                     }
-                    else if(t.value() == board.tile(i, j2).value()){   //上面最近的一个相等
-                        if(!book[j2]) {
+                    else if (t.value() == board.tile(i, j2).value()) {   //上面最近的一个相等
+                        if (!book[j2]) {
                             board.move(i, j2, t);
                             book[j2] = true;
                             score += 2 * t.value();
                             changed = true;
                         }
-                        else{
-                            if(j2 - 1 != j){
+                        else {
+                            if (j2 - 1 != j) {
                                 changed = true;
                             }
                             board.move(i,j2 - 1,t);
                         }
                     }
-                    else if(j2 - 1 != j){ //上面最近的一个不等 + 不挨着，要是挨着直接没变化
+                    else if (j2 - 1 != j) { //上面最近的一个不等 + 不挨着，要是挨着直接没变化
                         board.move(i, j2 - 1, t);
                         changed = true;
                     }
@@ -187,9 +187,9 @@ public class Model extends Observable {
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
         boolean judge = false;
-        for(int i = 0; i < BOARD_SIZE; i++){
-            for(int j = 0; j < BOARD_SIZE; j++){
-                if(b.tile(i, j) == null){
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if (b.tile(i, j) == null) {
                     //judge = true;
                     //break;
                     return true;
@@ -211,10 +211,10 @@ public class Model extends Observable {
         }*/
         //int cnt = 0;
         boolean judge = false;
-        for(int i = 0; i < BOARD_SIZE; i++){
-            for(int j = 0; j < BOARD_SIZE; j++){
-                if(b.tile(i, j) != null){
-                    if(b.tile(i, j).value() == MAX_PIECE){
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if (b.tile(i, j) != null) {
+                    if (b.tile(i, j).value() == MAX_PIECE) {
                         //judge = true;
                         //break;
                         return true;
@@ -225,8 +225,8 @@ public class Model extends Observable {
         return judge;
     }
 
-    public static boolean borderJudge(int x){
-        if(x < 0 || x > BOARD_SIZE - 1) return false;
+    public static boolean borderJudge(int x) {
+        if (x < 0 || x > BOARD_SIZE - 1) return false;
         return true;
     }
 
@@ -239,19 +239,19 @@ public class Model extends Observable {
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
         boolean judge = false;
-        if(emptySpaceExists(b)){
+        if (emptySpaceExists(b)) {
             return true;
         }
 
         int [][] directions = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
 
-        for(int i = 0; i < BOARD_SIZE; i++){
-            for(int j = 0; j < BOARD_SIZE; j++){
-                for(int t = 0; t < 4; t++){
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                for (int t = 0; t < 4; t++) {
                     int newRow = i + directions[t][0];
                     int newColumn = j + directions[t][1];
-                    if(borderJudge(newRow) && borderJudge(newColumn)){
-                        if(b.tile(i, j).value() == b.tile(newRow, newColumn).value())
+                    if (borderJudge(newRow) && borderJudge(newColumn)) {
+                        if (b.tile(i, j).value() == b.tile(newRow, newColumn).value())
                             return true;
                     }
                 }
