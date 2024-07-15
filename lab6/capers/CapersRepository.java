@@ -1,6 +1,8 @@
 package capers;
 
 import java.io.File;
+import java.io.IOException;
+
 import static capers.Utils.*;
 
 /** A repository for Capers 
@@ -18,7 +20,7 @@ public class CapersRepository {
     static final File CWD = new File(System.getProperty("user.dir"));
 
     /** Main metadata folder. */
-    static final File CAPERS_FOLDER = null; // TODO Hint: look at the `join`
+    static final File CAPERS_FOLDER = Utils.join(".capers"); // TODO Hint: look at the `join`
                                             //      function in Utils
 
     /**
@@ -32,6 +34,24 @@ public class CapersRepository {
      */
     public static void setupPersistence() {
         // TODO
+        File story = Utils.join(CAPERS_FOLDER, "story");
+        //File dogsName = Utils.join(Dog.DOG_FOLDER, "dogsName");
+        try {
+            if (!CAPERS_FOLDER.exists()) {
+                CAPERS_FOLDER.mkdir();
+            }
+            if (!Dog.DOG_FOLDER.exists()) {
+                Dog.DOG_FOLDER.mkdir();
+            }
+            if (!story.exists()) {
+                story.createNewFile();
+            }
+            /*if (!dogsName.exists()) {
+                dogsName.createNewFile();
+            }*/
+        } catch (IOException excp) {
+            System.out.println("创建文件时出错: " + excp.getMessage());
+        }
     }
 
     /**
@@ -41,24 +61,40 @@ public class CapersRepository {
      */
     public static void writeStory(String text) {
         // TODO
+        File story = Utils.join(CAPERS_FOLDER, "story");
+        String oldStory = readContentsAsString(story);
+        String currentStory = oldStory + text + '\n';
+        Utils.writeContents(story, currentStory);
+        System.out.println(currentStory);
     }
 
     /**
      * Creates and persistently saves a dog using the first
      * three non-command arguments of args (name, breed, age).
      * Also prints out the dog's information using toString().
+     * 使用 args 的前三个非命令参数（名称、品种、年龄）创建并持久保存一只狗。
+     * 还使用 toString() 打印出狗的信息。
      */
     public static void makeDog(String name, String breed, int age) {
         // TODO
+        Dog myDog = new Dog(name, breed, age);
+        myDog.saveDog();
+        System.out.println(myDog.toString());
     }
 
     /**
      * Advances a dog's age persistently and prints out a celebratory message.
      * Also prints out the dog's information using toString().
      * Chooses dog to advance based on the first non-command argument of args.
+     * 持续增加狗的年龄并打印出一条庆祝信息。
+     * 还使用 toString() 打印出狗的信息。
+     * 根据 args 的第一个非命令参数选择要增加的狗。
      * @param name String name of the Dog whose birthday we're celebrating.
      */
     public static void celebrateBirthday(String name) {
         // TODO
+        Dog myDog = Dog.fromFile(name);
+        myDog.haveBirthday();
+        myDog.saveDog();
     }
 }

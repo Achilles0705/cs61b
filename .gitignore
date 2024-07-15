@@ -1,19 +1,7 @@
-# Ignore all .idea directories
-.idea/
-
-# Ignore specific files and directories
-lab1/lab1.iml
-lab1/out/
-lab2/target/
-lab3/target/
+.idea
+*.class
+*.iml
 lib/
 out/
-proj0/out/
-proj0/proj0.iml
-proj1/target/
-proj1ec/.idea/
-lab2setup/target/
-lab4/target/
-proj1ec/target/
-
-.gitignore
+.capers
+sentinel
