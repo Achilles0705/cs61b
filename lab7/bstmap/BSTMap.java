@@ -20,12 +20,24 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         }
     }
 
+    public void printInOrder() {
+        printNode(root);
+    }
+
+    private void printNode(BSTNode node) {
+        if (node != null) {
+            printNode(node.left);
+            System.out.println("Key: %s" + node.key + "Value: %d" + node.val);
+            printNode(node.right);
+        }
+    }
+
     @Override
     public void clear() {
         root = clear(root);
     }
 
-    public BSTNode clear(BSTNode node) {
+    private BSTNode clear(BSTNode node) {
         if (node == null) {
             return null;
         }
@@ -40,7 +52,8 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return get(key) != null;
     }
 
-    public V get(BSTNode x, K key) {
+    private V get(BSTNode x, K key) {
+        if (x == null) return  null;
         int cmp = key.compareTo(x.key);
         if (cmp < 0) return get(x.left, key);
         else if (cmp > 0) return get(x.right, key);
@@ -67,7 +80,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         root = put(root, key, value);
     }
 
-    public BSTNode put(BSTNode x, K key, V val) {
+    private BSTNode put(BSTNode x, K key, V val) {
         if (x == null) return new BSTNode(key, val ,1);
         int cmp = key.compareTo(x.key);
         if (cmp < 0) x.left = put(x.left, key, val);
