@@ -55,7 +55,8 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         if (key == null) {
             throw new IllegalArgumentException("calls containsKey() with a null key");
         }
-        return get(key) != null;
+        //return get(key) != null;
+        return get(root, key) != null;
     }
 
     private V get(BSTNode x, K key) {
@@ -131,10 +132,9 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         } else {    //找到目标节点
             V removedValue = node.val;
 
-            BSTNode temp = ancestorStack.pop();
-            while(temp != null) {
+            BSTNode temp;
+            while(!ancestorStack.isEmpty() && (temp = ancestorStack.pop()) != null) {
                 temp.size--;
-                temp = ancestorStack.pop();
             }
 
             if (node.left == null && node.right == null) {  //1.没有子节点
