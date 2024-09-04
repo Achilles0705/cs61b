@@ -88,15 +88,22 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     @Override
     public void put(K key, V value) {
+        if (key == null) {
+            throw new IllegalArgumentException("calls put() with a null key");
+        }
         root = put(root, key, value);
     }
 
     private BSTNode put(BSTNode x, K key, V val) {
         if (x == null) return new BSTNode(key, val ,1);
         int cmp = key.compareTo(x.key);
-        if (cmp < 0) x.left = put(x.left, key, val);
-        else if (cmp > 0) x.right = put(x.right, key, val);
-        else x.val = val;
+        if (cmp < 0) {
+            x.left = put(x.left, key, val);
+        } else if (cmp > 0) {
+            x.right = put(x.right, key, val);
+        } else {
+            x.val = val;
+        }
         x.size = 1 + size(x.left) + size(x.right);
         return x;
     }
