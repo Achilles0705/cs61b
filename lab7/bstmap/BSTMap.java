@@ -2,10 +2,13 @@ package bstmap;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Stack;
 
 public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     private BSTNode root;
+
+    private Stack<BSTNode> ancestorStack = new Stack<>();
 
     private class  BSTNode {
         private K key;
@@ -50,7 +53,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     @Override
     public boolean containsKey(K key) {
         if (key == null) {
-            return false;
+            throw new IllegalArgumentException("calls containsKey() with a null key");
         }
         return get(key) != null;
     }
@@ -65,6 +68,9 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     @Override
     public V get(K key) {
+        if (key == null) {
+            throw new IllegalArgumentException("calls get() with a null key");
+        }
         return get(root ,key);
     }
 
@@ -100,12 +106,77 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     @Override
     public V remove(K key) {
-        throw new UnsupportedOperationException();
+        BSTNode temp = null;
+        if (key == null) throw new IllegalArgumentException("calls remove() with a null key");
+        if (!containsKey(key)) return null;
+        return remove(root, key, null);
     }
 
     @Override
     public V remove(K key, V value) {
-        throw new UnsupportedOperationException();
+        if (key == null) throw new IllegalArgumentException("calls remove() with a null key");
+        if (!containsKey(key)) return null;
+        if (get(key) != value) return null;
+        return remove(root, key, null);
+    }
+
+    private V remove(BSTNode node, K key, BSTNode parent) {
+        if (node == null) return null;
+        ancestorStack.push(parent);
+        int cmp = key.compareTo(node.key);
+        if (cmp < 0) {
+            return remove(node.left, key, node);
+        } else if (cmp > 0) {
+            return remove(node.right, key, node);
+        } else {    //找到目标节点
+            V removedValue = node.val;
+
+            BSTNode temp = ancestorStack.pop();
+            while(temp != null) {
+                temp.size--;
+                temp = ancestorStack.pop();
+            }
+
+            if (node.left == null && node.right == null) {  //1.没有子节点
+                if (parent == null) {
+                    root = null;
+                } else if (parent.left == node) {
+                    parent.left = null;
+                } else {
+                    parent.right = null;
+                }
+            } else if (node.left == null) {   //2.只有一个子节点（右）
+                if (parent == null) {
+                    root = node.right;
+                } else if (parent.left == node) {
+                    parent.left = node.right;
+                } else {
+                    parent.right = node.right;
+                }
+            } else if (node.right == null) {    //2.只有一个子节点（左）
+                if (parent == null) {
+                    root = node.left;
+                } else if (parent.left == node) {
+                    parent.left = node.left;
+                } else {
+                    parent.right = node.left;
+                }
+            } else {    //3.有两个子节点
+                BSTNode successor = findMin(node.right);
+                node.key = successor.key;
+                node.val = successor.val;
+                remove(node.right, successor.key, node);
+            }
+
+            return removedValue;
+        }
+    }
+
+    private BSTNode findMin(BSTNode node) {
+        while (node.left != null) {
+            node = node.left;
+        }
+        return node;
     }
 
     @Override
