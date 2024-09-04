@@ -3,6 +3,7 @@ package bstmap;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Stack;
+import java.util.HashSet;
 
 public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
@@ -102,7 +103,16 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     @Override
     public Set<K> keySet() {
-        throw new UnsupportedOperationException();
+        Set<K> keys = new HashSet<>();
+        collectKeys(root, keys);
+        return keys;
+    }
+
+    private void collectKeys(BSTNode node, Set<K> keys) {
+        if (node == null)   return;
+        collectKeys(node.left, keys);
+        keys.add(node.key);
+        collectKeys(node.right, keys);
     }
 
     @Override
