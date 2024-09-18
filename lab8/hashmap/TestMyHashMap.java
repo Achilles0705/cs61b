@@ -51,6 +51,8 @@ public class TestMyHashMap {
         assertFalse(b.containsKey("waterYouDoingHere"));
         b.put("waterYouDoingHere", 0);
         assertTrue(b.containsKey("waterYouDoingHere"));
+        b.remove("waterYouDoingHere");
+        assertFalse(b.containsKey("waterYouDoingHere"));
     }
 
     // assumes put works
