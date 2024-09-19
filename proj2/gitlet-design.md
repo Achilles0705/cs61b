@@ -1,26 +1,27 @@
-# Gitlet Design Document
+# Gitlet 设计文档
 
-**Name**:
+**Name**: Achilles
 
-## Classes and Data Structures
+## 类和数据结构
 
-### Class 1
+### Commit
 
-#### Fields
+1. Message - 包含提交的消息
+2. Timestamp - 提交的创建时间，由构造函数分配
+3. Parent1 - 提交对象的最近父提交
+4. Parent2 - 提交对象的第二近父提交
+5. blobTree - 包含的blobs
 
-1. Field 1
-2. Field 2
-
-
-### Class 2
-
-#### Fields
+### init
 
 1. Field 1
 2. Field 2
 
 
-## Algorithms
+## 算法
 
-## Persistence
+1.SHA-1算法
+
+
+## 持久性
 
