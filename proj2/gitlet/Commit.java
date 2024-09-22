@@ -5,10 +5,7 @@ package gitlet;
 import java.io.File;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.util.Date; // TODO: You'll likely use this in this class
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static gitlet.Repository.*;
 
@@ -48,6 +45,7 @@ public class Commit implements Serializable {
         buildBlobTree();    //对于blob的操作
         Utils.writeObject(f, this); //写入
         String curSHA1 = Utils.sha1(f);
+        HEAD = curSHA1; //HEAD指针为最新commit
         if (parent1_SHA1 == null) { //更新两个全局parent
             parent1_SHA1 = curSHA1;
         } else if (parent2_SHA1 == null) {
@@ -59,7 +57,8 @@ public class Commit implements Serializable {
     }
 
     private void buildBlobTree() {
-        blobTree.putAll(addStage);  //将缓存区的文件存到树中
+        StagingArea currentStagingArea = StagingArea.load();
+        blobTree.putAll(currentStagingArea.getAddStage());  //将缓存区的文件存到树中
         Commit parentCommit;
         File parentFile = Utils.join(COMMITS_DIR, parent1);
         if (parentFile.exists()) {
@@ -68,6 +67,22 @@ public class Commit implements Serializable {
         }
     }
 
+    public static <FIle> Commit commitID_to_File(String commitID) {
+        if (commitID.length() < 40) {
+            List<String> commitIDList = Utils.plainFilenamesIn(COMMITS_DIR);
+            for (String ID : commitIDList) {
+                if (ID.startsWith(commitID)) {
+                    commitID = ID;
+                    break;
+                }
+            }
+        }
+        File f = Utils.join(COMMITS_DIR, commitID);
+        if (!f.exists()) {
+            return null;
+        }
+        return Utils.readObject(f, Commit.class);
+    }
 
     private String getDate() {
         if (this.parent1 == null) {
@@ -97,6 +112,10 @@ public class Commit implements Serializable {
 
     public String getParent2() {
         return this.parent2;
+    }
+
+    public HashMap<String, String> getBlobTree() {
+        return this.blobTree;
     }
 
 

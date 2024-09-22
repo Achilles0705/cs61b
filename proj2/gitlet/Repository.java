@@ -32,6 +32,10 @@ public class Repository {
 
     public static final File COMMITS_DIR = join(GITLET_DIR, ".commits");
 
+    public static final File STAGE_FILE = join(GITLET_DIR, ".stagingArea");
+
+    //public static final File BRANCH_DIR = join(GITLET_DIR, ".branch");
+
     //public static String CURRENT_BRANCH = null;
 
     //public static final String initialCommitId = "0000000000000000000000000000000000000000";
@@ -40,15 +44,17 @@ public class Repository {
     public static HashMap<String, String> branches = new HashMap<>();
 
     //暂存区
-    public static HashMap<String, String> addStage = new HashMap<>();
+    //public static HashMap<String, String> addStage = new HashMap<>();
 
-    public static HashSet<String> removeStage = new HashSet<>();
+    //public static HashSet<String> removeStage = new HashSet<>(); 新建了类
 
     //public static String parameter2;
 
     public static String parent1_SHA1;
 
     public static String parent2_SHA1;
+
+    public static String HEAD;  //更新head还没解决
 
     public static HashMap<String, String> rmMap = new HashMap<>();
 

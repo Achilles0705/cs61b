@@ -23,6 +23,7 @@ public class SomeObj {
         commit("initial commit");
         OBJECTS_DIR.mkdir();
         COMMITS_DIR.mkdir();
+        branches.put("master", HEAD);
         //CURRENT_BRANCH = "master";
         //branches.put(CURRENT_BRANCH,initialCommitId);
     }
@@ -37,14 +38,16 @@ public class SomeObj {
         if (rmMap.containsKey(currentSHA1)) { //被rm标记，不再暂存
             System.exit(0);
         }
-        if (removeStage.contains(currentSHA1)) { //若在删除区，则从中删除
-            removeStage.remove(currentSHA1);
-        } else if (addStage.get(fileName) == null) {    //暂存区没有，加入
-            addStage.put(fileName, currentSHA1);
-        } else if (!Objects.equals(addStage.get(fileName), currentSHA1)) {  //暂存区有，覆盖
-            addStage.remove(fileName);
-            addStage.put(fileName, currentSHA1);
+        StagingArea currentStagingArea = StagingArea.load();
+        if (currentStagingArea.getRemoveStage().contains(currentSHA1)) { //若在删除区，则从中删除
+            currentStagingArea.getRemoveStage().remove(currentSHA1);
+        } else if (currentStagingArea.getAddStage().get(fileName) == null) {    //暂存区没有，加入
+            currentStagingArea.getAddStage().put(fileName, currentSHA1);
+        } else if (!Objects.equals(currentStagingArea.getAddStage().get(fileName), currentSHA1)) {  //暂存区有，覆盖
+            currentStagingArea.getAddStage().remove(fileName);
+            currentStagingArea.getAddStage().put(fileName, currentSHA1);
         }
+        currentStagingArea.save();
     }
 
     public void commit(String message) {
@@ -54,10 +57,14 @@ public class SomeObj {
     public void rm(String fileName) {
         File f = Utils.join(OBJECTS_DIR, fileName);
         String currentSHA1 = Utils.sha1(f.getAbsolutePath());
-        if (addStage.containsKey(currentSHA1)) {
-            addStage.remove(currentSHA1);
-        } else if (true) {   //当前head commit中记录了该文件
-            removeStage.add(fileName);
+        StagingArea currentStagingArea = StagingArea.load();
+        if (currentStagingArea.getAddStage().containsKey(currentSHA1)) {
+            currentStagingArea.getAddStage().remove(currentSHA1);
+            return;
+        }
+        Commit curCommit = Commit.commitID_to_File(HEAD);
+        if (curCommit.getBlobTree().containsKey(currentSHA1)) {   //当前head commit中记录了该文件
+            currentStagingArea.getRemoveStage().add(currentSHA1);
             Utils.join(CWD, fileName).delete();
         }
     }
@@ -92,15 +99,19 @@ public class SomeObj {
     }
 
     public void status() {
-
+        //较难
     }
 
     public void checkout(String name) {
-
+        //三种情况
     }
 
     public void branch(String branchName) {
-
+        if (branches.containsKey(branchName)) {
+            Utils.error("A branch with that name already exists.");
+            System.exit(0);
+        }
+        branches.put(branchName, HEAD);
     }
 
     public void rm_branch(String branchName) {
@@ -108,7 +119,7 @@ public class SomeObj {
     }
 
     public void reset(String commitID) {
-
+        //代码复用
     }
 
     public void merge(String branchName) {
