@@ -41,7 +41,7 @@ public class Repository {
     //public static final String initialCommitId = "0000000000000000000000000000000000000000";
 
     //分支用哈希表存
-    public static HashMap<String, String> branches = new HashMap<>();
+    public static HashMap<String, String> branches = new HashMap<>();   //key是名字，value是SHA1值
 
     //暂存区
     //public static HashMap<String, String> addStage = new HashMap<>();
@@ -50,9 +50,9 @@ public class Repository {
 
     //public static String parameter2;
 
-    public static String parent1_SHA1;
+    //public static String parent1_SHA1;  //用全局变量有问题
 
-    public static String parent2_SHA1;
+    //public static String parent2_SHA1;
 
     public static String HEAD;  //更新head还没解决
 

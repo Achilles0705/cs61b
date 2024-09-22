@@ -28,9 +28,9 @@ public class Commit implements Serializable {
 
     private String timestamp;
 
-    private String parent1;
+    private String parent1; //近
 
-    private String parent2;
+    private String parent2; //远
 
     private HashMap<String, String> blobTree;
 
@@ -40,25 +40,30 @@ public class Commit implements Serializable {
         this.parent2 = parent2;
         this.timestamp = getDate();
         blobTree = new HashMap<>();
-        File f = Utils.join(GITLET_DIR, message);
+        //File f = Utils.join(GITLET_DIR, message);
 
         buildBlobTree();    //对于blob的操作
-        Utils.writeObject(f, this); //写入
-        String curSHA1 = Utils.sha1(f);
-        HEAD = curSHA1; //HEAD指针为最新commit
-        if (parent1_SHA1 == null) { //更新两个全局parent
+        //Utils.writeObject(f, this); //写入
+        //String curSHA1 = Utils.sha1(f);
+        //HEAD = curSHA1; //HEAD指针为最新commit
+
+        /*if (parent1_SHA1 == null) { //更新两个全局parent
             parent1_SHA1 = curSHA1;
         } else if (parent2_SHA1 == null) {
             parent2_SHA1 = curSHA1;
         } else {
-            parent2_SHA1 = curSHA1;
-            parent1_SHA1 = parent2_SHA1;
-        }
+            //parent2_SHA1 = curSHA1;
+            //parent1_SHA1 = parent2_SHA1;
+            parent1_SHA1 = HEADCommit.parent2;
+            parent2_SHA1 = HEAD;
+            HEAD = curSHA1;
+        }*/
     }
 
     private void buildBlobTree() {
         StagingArea currentStagingArea = StagingArea.load();
         blobTree.putAll(currentStagingArea.getAddStage());  //将缓存区的文件存到树中
+        currentStagingArea.getAddStage().clear();
         Commit parentCommit;
         File parentFile = Utils.join(COMMITS_DIR, parent1);
         if (parentFile.exists()) {
@@ -67,7 +72,7 @@ public class Commit implements Serializable {
         }
     }
 
-    public static <FIle> Commit commitID_to_File(String commitID) {
+    public static <FIle> Commit load(String commitID) {
         if (commitID.length() < 40) {
             List<String> commitIDList = Utils.plainFilenamesIn(COMMITS_DIR);
             for (String ID : commitIDList) {
@@ -116,6 +121,10 @@ public class Commit implements Serializable {
 
     public HashMap<String, String> getBlobTree() {
         return this.blobTree;
+    }
+
+    public void save() {
+        Utils.writeObject(Utils.join(GITLET_DIR, message), this);
     }
 
 

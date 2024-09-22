@@ -35,4 +35,9 @@ public class StagingArea implements Serializable {
         return addStage;
     }
 
+    public void clear() {
+        addStage.clear();
+        removeStage.clear();
+    }
+
 }
