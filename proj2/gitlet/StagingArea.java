@@ -12,7 +12,7 @@ public class StagingArea implements Serializable {
     //public static HashMap<String, String> addStage = new HashMap<>();
 
     private HashSet<String> removeStage;
-    private HashMap<String, String> addStage;
+    private HashMap<String, String> addStage;   //key是SHA1值，value是名字，通过SHA1找名字
 
     public StagingArea() {
         removeStage = new HashSet<>();

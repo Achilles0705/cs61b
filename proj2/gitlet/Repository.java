@@ -41,7 +41,7 @@ public class Repository {
     //public static final String initialCommitId = "0000000000000000000000000000000000000000";
 
     //分支用哈希表存
-    public static HashMap<String, String> branches = new HashMap<>();   //key是名字，value是SHA1值
+    public static HashMap<String, String> branches = new HashMap<>();   //key是SHA1值，value是名字，通过SHA1找名字
 
     //暂存区
     //public static HashMap<String, String> addStage = new HashMap<>();
@@ -54,7 +54,7 @@ public class Repository {
 
     //public static String parent2_SHA1;
 
-    public static String HEAD;  //更新head还没解决
+    public static String HEAD;  //更新head已解决
 
     public static HashMap<String, String> rmMap = new HashMap<>();
 

@@ -127,6 +127,10 @@ public class Commit implements Serializable {
         Utils.writeObject(Utils.join(GITLET_DIR, message), this);
     }
 
+    public String getSHA1() {
+        return Utils.sha1(this);
+    }
+
 
     /* TODO: fill in the rest of this class. */
 }

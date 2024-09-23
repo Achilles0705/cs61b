@@ -95,22 +95,25 @@ public class Main {
 
     private static void checkCWD() {    //有没有init初始化
         if (!GITLET_DIR.exists()) {
-            Utils.error("Not in an initialized Gitlet directory.");
-            System.exit(0);
+            //Utils.error("Not in an initialized Gitlet directory.");
+            //System.exit(0);
+            Utils.exitWithMessage("Not in an initialized Gitlet directory.");
         }
     }
 
     private static void checkNoArgs(String[] args) {    //empty情况
         if (args.length == 0) {
-            Utils.error("Please enter a command.");
-            System.exit(0);
+            //Utils.error("Please enter a command.");
+            //System.exit(0);
+            Utils.exitWithMessage("Please enter a command.");
         }
     }
 
     private static void checkArgsNum(String[] args, int n) {    //确保命令合法
         if (args.length != n) {
-            Utils.error("Incorrect operands.");
-            System.exit(0);
+            //Utils.error("Incorrect operands.");
+            //System.exit(0);
+            Utils.exitWithMessage("Incorrect operands.");
         }
     }
 }
