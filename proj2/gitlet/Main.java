@@ -64,8 +64,21 @@ public class Main {
                 break;
             case "checkout":
                 checkCWD();
-                checkArgsNum(args, 2);
-                bloop.checkout(args[1]);
+                if (args.length == 2) {
+                    bloop.checkoutBranch(args[1]);
+                }
+                if (args.length == 3) {
+                    if (!args[1].equals("--")) {
+                        Utils.exitWithMessage("Incorrect operands.");
+                    }
+                    bloop.checkoutFile(args[2]);
+                }
+                if (args.length == 4) {
+                    if (!args[2].equals("--")) {
+                        Utils.exitWithMessage("Incorrect operands.");
+                    }
+                    bloop.checkoutCommit_File(args[1], args[3]);
+                }
                 break;
             case "branch":
                 checkCWD();
@@ -95,24 +108,18 @@ public class Main {
 
     private static void checkCWD() {    //有没有init初始化
         if (!GITLET_DIR.exists()) {
-            //Utils.error("Not in an initialized Gitlet directory.");
-            //System.exit(0);
             Utils.exitWithMessage("Not in an initialized Gitlet directory.");
         }
     }
 
     private static void checkNoArgs(String[] args) {    //empty情况
         if (args.length == 0) {
-            //Utils.error("Please enter a command.");
-            //System.exit(0);
             Utils.exitWithMessage("Please enter a command.");
         }
     }
 
     private static void checkArgsNum(String[] args, int n) {    //确保命令合法
         if (args.length != n) {
-            //Utils.error("Incorrect operands.");
-            //System.exit(0);
             Utils.exitWithMessage("Incorrect operands.");
         }
     }

@@ -25,33 +25,33 @@ public class SomeObj {
     }
 
     public void add(String fileName) {
-        File f = Utils.join(OBJECTS_DIR, fileName);
-        String currentSHA1 = Utils.sha1(f.getAbsolutePath());
+        //File f = Utils.join(OBJECTS_DIR, fileName);
+        File f = Utils.join(CWD, fileName);
+        //String currentSHA1 = Utils.sha1(f.getAbsolutePath());
         if (!f.exists()) {
-            //Utils.error("File does not exist.");
-            //System.exit(0);
             Utils.exitWithMessage("File does not exist.");
         }
-        if (rmMap.containsKey(currentSHA1)) { //被rm标记，不再暂存
-            System.exit(0);
-        }
+        Blob currentBlob = new Blob(fileName);
+        String currentSHA1 = currentBlob.getSHA1();
+        Commit currentCommit = Commit.load(HEAD);
+
         StagingArea currentStagingArea = StagingArea.load();
         if (currentStagingArea.getRemoveStage().contains(currentSHA1)) { //若在删除区，则从中删除
             currentStagingArea.getRemoveStage().remove(currentSHA1);
-        } else if (currentStagingArea.getAddStage().get(currentSHA1) == null) {    //暂存区没有，加入
-            currentStagingArea.getAddStage().put(currentSHA1, fileName);
-        } else if (!Objects.equals(currentStagingArea.getAddStage().get(currentSHA1), fileName)) {  //暂存区有，覆盖
-            currentStagingArea.getAddStage().remove(currentSHA1);
+        } else if (currentCommit.getBlobTree().containsKey(currentSHA1)) {  //最近提交里有，且完全相同
+            if (currentStagingArea.getAddStage().containsValue(fileName)) { //在暂加区中，就删掉；不在暂加区不需要改动
+                currentStagingArea.addStage_removeValue(fileName);
+            }
+        } else {   //最近提交里有，但内容不同；最近提交中没有——合并为else
             currentStagingArea.getAddStage().put(currentSHA1, fileName);
         }
         currentStagingArea.save();
+        currentBlob.save();
     }
 
     public void commit(String message) {
         StagingArea currentStagingArea = StagingArea.load();
         if (currentStagingArea.getAddStage().isEmpty() && currentStagingArea.getRemoveStage().isEmpty()) {
-            //Utils.error("No changes added to the commit.");
-            //System.exit(0);
             Utils.exitWithMessage("No changes added to the commit.");
         }
         if (message.isEmpty()) {
@@ -76,7 +76,8 @@ public class SomeObj {
 
     public void rm(String fileName) {
         File f = Utils.join(OBJECTS_DIR, fileName);
-        String currentSHA1 = Utils.sha1(f.getAbsolutePath());
+        //String currentSHA1 = Utils.sha1(f.getAbsolutePath());
+        String currentSHA1 = Utils.sha1((Object) Utils.readContents(f));
         StagingArea currentStagingArea = StagingArea.load();
         Commit curCommit = Commit.load(HEAD);
 
@@ -86,10 +87,9 @@ public class SomeObj {
             currentStagingArea.getRemoveStage().add(currentSHA1);
             Utils.join(CWD, fileName).delete();
         } else {    //失败情况
-            //Utils.error("No reason to remove the file.");
-            //System.exit(0);
             Utils.exitWithMessage("No reason to remove the file.");
         }
+        currentStagingArea.save();
     }
 
     public void log() { //合并提交还没有处理
@@ -127,8 +127,6 @@ public class SomeObj {
             }
             String output = builder.toString();
             if (output.isEmpty()) {
-                //Utils.error("Found no commit with that message.");
-                //System.exit(0);
                 Utils.exitWithMessage("Found no commit with that message.");
             } else {
                 System.out.println(output);
@@ -171,14 +169,33 @@ public class SomeObj {
 
     }
 
-    public void checkout(String name) {
-        //三种情况
+    public void checkoutFile(String fileName) {
+        checkoutCommit_File(HEAD, fileName);
+    }
+
+    public void checkoutCommit_File(String commitID, String fileName) {
+
+        //File f = Utils.join(OBJECTS_DIR, fileName);
+        String fileID = null;
+        Commit currentCommit = Commit.load(commitID);
+        List<String> fileList = Utils.plainFilenamesIn(CWD);
+        if (!currentCommit.getBlobTree().containsValue(fileName)) { //当前commit里没有
+            Utils.exitWithMessage("File does not exist in that commit.");
+        } else {
+            Utils.restrictedDelete(Utils.join(CWD, fileName));  //CWD中有的话就删了再加，没有的话这条忽略
+            fileID = valueToKey(currentCommit.getBlobTree(), fileName);
+            byte[] contents = Utils.readContents(Utils.join(OBJECTS_DIR, fileID));  //file实例化
+            Utils.writeContents(Utils.join(CWD, fileName), (Object) contents);  //在CWD中写入
+        }
+
+    }
+
+    public void checkoutBranch(String branchName) {
+
     }
 
     public void branch(String branchName) {
         if (branches.containsValue(branchName)) {
-            //Utils.error("A branch with that name already exists.");
-            //System.exit(0);
             Utils.exitWithMessage("A branch with that name already exists.");
         }
         branches.put(HEAD, branchName);
@@ -213,6 +230,17 @@ public class SomeObj {
         List<String> namesList = new ArrayList<>(set);
         Collections.sort(namesList);    //分支按名字字典排序
         return namesList;
+    }
+
+    private String valueToKey(HashMap<String, String> map, String name) {
+        Iterator<Map.Entry<String, String>> iterator = map.entrySet().iterator();
+        while (iterator.hasNext()) {    //通过value找key
+            Map.Entry<String, String> entry = iterator.next();
+            if (entry.getValue().equals(name)) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
 }
