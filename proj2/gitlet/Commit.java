@@ -61,15 +61,19 @@ public class Commit implements Serializable {
     }
 
     private void buildBlobTree() {
-        StagingArea currentStagingArea = StagingArea.load();
-        blobTree.putAll(currentStagingArea.getAddStage());  //将缓存区的文件存到树中
-        currentStagingArea.getAddStage().clear();
         Commit parentCommit;
         File parentFile = Utils.join(COMMITS_DIR, parent1);
         if (parentFile.exists()) {
             parentCommit = Utils.readObject(parentFile, Commit.class);
-            blobTree.putAll(parentCommit.blobTree); //把父commit的blobs加到现在commit中
+            this.blobTree.putAll(parentCommit.blobTree); //把父commit的blobs加到现在commit中
         }
+        StagingArea currentStagingArea = StagingArea.load();
+        blobTree.putAll(currentStagingArea.getAddStage());  //将暂加区的文件存到树中
+        for (String removeStageFileName : currentStagingArea.getRemoveStage()) {    //暂减区的从中删除
+            blobTree.entrySet().removeIf(entry -> entry.getValue().equals(removeStageFileName));
+        }
+        currentStagingArea.clear();
+        currentStagingArea.save();
     }
 
     public static <FIle> Commit load(String commitID) {

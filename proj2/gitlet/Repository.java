@@ -32,12 +32,14 @@ public class Repository {
 
     public static final File COMMITS_DIR = join(GITLET_DIR, ".commits");
 
+    public static final File BRANCH_DIR = join(GITLET_DIR, ".branch");
+
     public static final File STAGE_FILE = join(GITLET_DIR, "stagingArea");
 
-    //public static final File BRANCH_DIR = join(GITLET_DIR, ".branch");
+    public static final File HEAD_FILE = join(GITLET_DIR, "HEAD");
 
     //分支用哈希表存
-    public static HashMap<String, String> branches = new HashMap<>();   //key是SHA1值，value是名字，通过SHA1找名字
+    //public static HashMap<String, String> branches = new HashMap<>();   //key是SHA1值，value是名字，通过SHA1找名字
 
     //暂存区
     //public static HashMap<String, String> addStage = new HashMap<>();
@@ -50,7 +52,7 @@ public class Repository {
 
     //public static String parent2_SHA1;
 
-    public static String HEAD;  //有问题的 要存下来
+    //public static String HEAD;  //有问题的 要存下来
 
     //public static HashMap<String, String> rmMap = new HashMap<>();
 

@@ -19,7 +19,8 @@ public class SomeObj {
         commit("initial commit");
         OBJECTS_DIR.mkdir();
         COMMITS_DIR.mkdir();
-        branches.put(HEAD, "master");
+        //branches.put(HEAD, "master");
+        HEAD.setBranchName("master");
         //CURRENT_BRANCH = "master";
         //branches.put(CURRENT_BRANCH,initialCommitId);
     }
@@ -33,12 +34,12 @@ public class SomeObj {
         }
         Blob currentBlob = new Blob(fileName);
         String currentSHA1 = currentBlob.getSHA1();
-        Commit currentCommit = Commit.load(HEAD);
+        Commit headCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
 
         StagingArea currentStagingArea = StagingArea.load();
         if (currentStagingArea.getRemoveStage().contains(currentSHA1)) { //若在删除区，则从中删除
             currentStagingArea.getRemoveStage().remove(currentSHA1);
-        } else if (currentCommit.getBlobTree().containsKey(currentSHA1)) {  //最近提交里有，且完全相同
+        } else if (headCommit.getBlobTree().containsKey(currentSHA1)) {  //最近提交里有，且完全相同
             if (currentStagingArea.getAddStage().containsValue(fileName)) { //在暂加区中，就删掉；不在暂加区不需要改动
                 currentStagingArea.addStage_removeValue(fileName);
             }
@@ -55,23 +56,10 @@ public class SomeObj {
             Utils.exitWithMessage("No changes added to the commit.");
         }
         if (message.isEmpty()) {
-            //Utils.error("Please enter a commit message.");
-            //System.exit(0);
             Utils.exitWithMessage("Please enter a commit message.");
         }
-        if (HEAD == null) {
-            Commit currentCommit = new Commit(message, null, null);
-            HEAD = Utils.sha1(currentCommit);
-        } else {
-            Commit HEADCommit = Commit.load(HEAD);  //取消全局变量parent_SHA1，现在一切只与HEAD指针有关
-            String parent1 = HEAD;
-            String parent2 = HEADCommit.getParent1();
-            Commit currentCommit = new Commit(message, parent1, parent2); //1近2远
-            currentCommit.getBlobTree().putAll(currentStagingArea.getAddStage());  //将缓存区的文件存到树中
-            currentStagingArea.clear(); //commit后整个缓存区清空
-            currentCommit.save(); //写入
-            HEAD = Utils.sha1(currentCommit);
-        }
+        String headCommitId = Branch.getCommitId(HEAD.getBranchName());
+        Commit currentCommit = new Commit(message, headCommitId, null); //parent2只在merge中起作用
     }
 
     public void rm(String fileName) {
@@ -79,11 +67,11 @@ public class SomeObj {
         //String currentSHA1 = Utils.sha1(f.getAbsolutePath());
         String currentSHA1 = Utils.sha1((Object) Utils.readContents(f));
         StagingArea currentStagingArea = StagingArea.load();
-        Commit curCommit = Commit.load(HEAD);
+        Commit currentCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
 
         if (currentStagingArea.getAddStage().containsKey(currentSHA1)) {    //已经暂存，则取消暂存
             currentStagingArea.getAddStage().remove(currentSHA1);
-        } else if (curCommit.getBlobTree().containsKey(currentSHA1)) {   //当前head commit中记录了该文件，则暂存删除
+        } else if (currentCommit.getBlobTree().containsKey(currentSHA1)) {   //当前head commit中记录了该文件，则暂存删除
             currentStagingArea.getRemoveStage().add(currentSHA1);
             Utils.join(CWD, fileName).delete();
         } else {    //失败情况
@@ -93,7 +81,7 @@ public class SomeObj {
     }
 
     public void log() { //合并提交还没有处理
-        Commit currentCommit = Commit.load(HEAD);
+        Commit currentCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
         while (currentCommit.getParent1() != null) {
             System.out.println("===\n" +
                     "commit " + currentCommit + "\n" +
@@ -136,21 +124,17 @@ public class SomeObj {
 
     public void status() {  //两种思路 1.把branch换成像lab8一样的列表嵌套链表 2.通过HEAD往parent找，直至找到
         //较难
-        Commit currentCommit = Commit.load(HEAD);
-        while (!branches.containsKey(currentCommit.getSHA1())) {
-            currentCommit = Commit.load(currentCommit.getParent1());
-        }
-        String currentBranch = branches.get(currentCommit.getSHA1()); //找到当前分支
         HashMap<String, String> addStageName = StagingArea.load().getAddStage();
         HashSet<String> removeStageName = StagingArea.load().getRemoveStage();
+        List<String> branchNameList = Utils.plainFilenamesIn(BRANCH_DIR);   //branch重构了
 
-        List<String> sortedBranchNames = sortMapNames(branches);
+        Collections.sort(branchNameList);
         List<String> sortedAddStageName = sortMapNames(addStageName);
         List<String> sortedRemoveStageName = sortSetNames(removeStageName);
 
         System.out.println("=== Branches ===");
-        for (String branchName : sortedBranchNames) {
-            if (Objects.equals(branchName, currentBranch)) {
+        for (String branchName : branchNameList) {
+            if (Objects.equals(branchName, HEAD.getBranchName())) {
                 System.out.print("*");  //当前分支前面多个*
             }
             System.out.println(branchName);
@@ -170,14 +154,17 @@ public class SomeObj {
     }
 
     public void checkoutFile(String fileName) {
-        checkoutCommit_File(HEAD, fileName);
+        checkoutCommit_File(Branch.getCommitId(HEAD.getBranchName()), fileName);
     }
 
-    public void checkoutCommit_File(String commitID, String fileName) {
+    public void checkoutCommit_File(String commitId, String fileName) {
 
         //File f = Utils.join(OBJECTS_DIR, fileName);
+        if (Commit.load(commitId) == null) {
+            Utils.exitWithMessage("No commit with that id exists.");
+        }
         String fileID = null;
-        Commit currentCommit = Commit.load(commitID);
+        Commit currentCommit = Commit.load(commitId);
         List<String> fileList = Utils.plainFilenamesIn(CWD);
         if (!currentCommit.getBlobTree().containsValue(fileName)) { //当前commit里没有
             Utils.exitWithMessage("File does not exist in that commit.");
@@ -191,22 +178,64 @@ public class SomeObj {
     }
 
     public void checkoutBranch(String branchName) {
+        //该功能需要到目标branch的最新commit，感觉HEAD需要重构一下
+        //找到目标commit，把blobTree里的嘎嘎往CWD里加就完事了
+        List<String> branchNameList = Utils.plainFilenamesIn(BRANCH_DIR);
+        if (branchNameList.contains(branchName)) {
+            Utils.exitWithMessage("No such branch exists.");
+        }
+        Commit currentCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));   //看CWD里有没有currentCommit没有的，如果存在就报错
+        checkoutCommit(currentCommit);
+        HEAD.setBranchName(branchName);
+    }
 
+    private static void checkoutCommit(Commit commit) { //目前是checkoutBranch()要用，将来reset()和merge()会复用
+        List<String> fileList = Utils.plainFilenamesIn(CWD);
+        for (String fileName : fileList) {
+            if (!commit.getBlobTree().containsValue(fileName)) {
+                Utils.exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
+            }
+        }
+        StagingArea stagingArea = StagingArea.load();
+        String currentCommitId = Branch.getCommitId(HEAD.getBranchName());
+        Commit currentCommit = Commit.load(currentCommitId);
+        Set<String> fileNames = commit.getBlobTree().keySet();
+        if (commit.getSHA1().equals(currentCommitId)) {
+            return;
+        }
+        for (String fileName : fileNames) {
+            String blobId = commit.getBlobTree().get(fileName);
+            byte[] blobContents = Utils.readContents(Utils.join(OBJECTS_DIR, blobId));
+            Utils.writeContents(Utils.join(CWD, fileName), (Object) blobContents);
+        }
+        for (String fileName : currentCommit.getBlobTree().keySet()) {
+            if (!fileNames.contains(fileName)) {
+                Utils.join(CWD, fileName).delete();
+            }
+        }
+        stagingArea.clear();
+        stagingArea.save();
     }
 
     public void branch(String branchName) {
-        if (branches.containsValue(branchName)) {
+        List<String> branchNameList = Utils.plainFilenamesIn(BRANCH_DIR);
+        if (branchNameList.contains(branchName)) {
             Utils.exitWithMessage("A branch with that name already exists.");
         }
-        branches.put(HEAD, branchName);
+        Branch.setCommitId(branchName, Branch.getCommitId(HEAD.getBranchName()));
     }
 
     public void rm_branch(String branchName) {
 
     }
 
-    public void reset(String commitID) {
-        //代码复用
+    public void reset(String commitId) {
+        Commit commit = Commit.load(commitId);
+        if (Commit.load(commitId) == null) {
+            Utils.exitWithMessage("No commit with that id exists.");
+        }
+        checkoutCommit(commit);
+        Branch.setCommitId(HEAD.getBranchName(), commitId);
     }
 
     public void merge(String branchName) {
