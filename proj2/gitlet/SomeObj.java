@@ -1,7 +1,5 @@
 package gitlet;
 
-import org.w3c.dom.ls.LSException;
-
 import java.io.File;
 import java.util.*;
 
@@ -226,7 +224,14 @@ public class SomeObj {
     }
 
     public void rm_branch(String branchName) {
-
+        List<String> branchNameList = Utils.plainFilenamesIn(BRANCH_DIR);
+        if (!branchNameList.contains(branchName)) {
+            Utils.exitWithMessage("A branch with that name does not exist.");
+        }
+        if (Objects.equals(branchName, HEAD.getBranchName())) {
+            Utils.exitWithMessage("Cannot remove the current branch.");
+        }
+        Utils.join(BRANCH_DIR, branchName).delete();
     }
 
     public void reset(String commitId) {
@@ -241,12 +246,6 @@ public class SomeObj {
     public void merge(String branchName) {
         //最难
     }
-
-    /*private List<String> sortNames(Collection<String> names) {
-        List<String> Names = new ArrayList<>(names);
-        Collections.sort(Names);    //分支按名字字典排序
-        return Names;
-    }*/
 
     private List<String> sortMapNames(HashMap<String, String> map) {
         Collection<String> names = map.values();
