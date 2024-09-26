@@ -91,12 +91,15 @@ public class SomeObj {
 
     public void global_log() {  //合并提交还没有处理
         List<String> commitList = Utils.plainFilenamesIn(OBJECTS_DIR);
-        while (!commitList.isEmpty()) {
-            Commit currentCommit = Commit.load(commitList.removeFirst());
+        Iterator<String> iterator = commitList.iterator();
+        while (iterator.hasNext()) {
+            String commitId = iterator.next();
+            Commit currentCommit = Commit.load(commitId);
             System.out.println("===\n" +
                     "commit " + currentCommit + "\n" +
                     "Date: " + currentCommit.getTimestamp() + "\n" +
                     currentCommit.getMessage() + "\n");
+            iterator.remove();
         }
     }
 
