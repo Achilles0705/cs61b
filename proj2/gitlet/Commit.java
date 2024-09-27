@@ -34,6 +34,14 @@ public class Commit implements Serializable {
 
     private HashMap<String, String> blobTree;
 
+    public Commit() {
+        this.message = "initial commit";
+        this.parent1 = null;
+        this.parent2 = null;
+        blobTree = new HashMap<>();
+        this.timestamp = this.getDate();
+    }
+
     public Commit(String message, String parent1, String parent2) { //根据说明，commit要保留最近的两个父级
         this.message = message;
         this.parent1 = parent1;
