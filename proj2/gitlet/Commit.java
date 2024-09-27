@@ -2,8 +2,7 @@ package gitlet;
 
 // TODO: any imports you need here
 
-import java.io.File;
-import java.io.Serializable;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -32,7 +31,7 @@ public class Commit implements Serializable {
 
     private String parent2; //远
 
-    private HashMap<String, String> blobTree;
+    private HashMap<String, String> blobTree;   //key是SHA1，value是name
 
     public Commit() {
         this.message = "initial commit";
@@ -84,17 +83,17 @@ public class Commit implements Serializable {
         currentStagingArea.save();
     }
 
-    public static <FIle> Commit load(String commitID) {
-        if (commitID.length() < 40) {
-            List<String> commitIDList = Utils.plainFilenamesIn(COMMITS_DIR);
-            for (String ID : commitIDList) {
-                if (ID.startsWith(commitID)) {
-                    commitID = ID;
+    public static Commit load(String commitId) {
+        if (commitId.length() < 40) {
+            List<String> commitIdList = Utils.plainFilenamesIn(COMMITS_DIR);
+            for (String Id : commitIdList) {
+                if (Id.startsWith(commitId)) {
+                    commitId = Id;
                     break;
                 }
             }
         }
-        File f = Utils.join(COMMITS_DIR, commitID);
+        File f = Utils.join(COMMITS_DIR, commitId);
         if (!f.exists()) {
             return null;
         }
@@ -136,11 +135,20 @@ public class Commit implements Serializable {
     }
 
     public void save() {
-        Utils.writeObject(Utils.join(GITLET_DIR, message), this);
+        Utils.writeObject(Utils.join(COMMITS_DIR, this.getSHA1()), this);
     }
 
     public String getSHA1() {
-        return Utils.sha1(this);
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+            objectOutputStream.writeObject(this);
+            objectOutputStream.close();
+            byte[] byteArray = byteArrayOutputStream.toByteArray();
+            return Utils.sha1(byteArray);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to serialize Commit object", e);
+        }
     }
 
 

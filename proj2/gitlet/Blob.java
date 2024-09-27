@@ -16,7 +16,7 @@ public class Blob implements Serializable {
     }
 
     public String getSHA1() {
-        return Utils.sha1(this);
+        return Utils.sha1(this.name, this.contents);
     }
 
     private byte[] getContents() {
