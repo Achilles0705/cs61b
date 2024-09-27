@@ -27,7 +27,7 @@ public class StagingArea implements Serializable {
     }
 
     public void save() {
-        Utils.writeContents(STAGE_FILE, this);
+        Utils.writeObject(STAGE_FILE, this);
     }
 
     public HashSet<String> getRemoveStage() {
