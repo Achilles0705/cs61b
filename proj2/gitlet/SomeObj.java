@@ -100,15 +100,12 @@ public class SomeObj {
 
     public void global_log() {  //合并提交还没有处理
         List<String> commitList = Utils.plainFilenamesIn(COMMITS_DIR);
-        Iterator<String> iterator = commitList.iterator();
-        while (iterator.hasNext()) {
-            String commitId = iterator.next();
+        for (String commitId : commitList) {
             Commit currentCommit = Commit.load(commitId);
             System.out.println("===\n" +
                     "commit " + currentCommit + "\n" +
                     "Date: " + currentCommit.getTimestamp() + "\n" +
                     currentCommit.getMessage() + "\n");
-            iterator.remove();
         }
     }
 
