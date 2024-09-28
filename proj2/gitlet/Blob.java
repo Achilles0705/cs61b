@@ -19,6 +19,14 @@ public class Blob implements Serializable {
         return Utils.sha1(this.name, this.contents);
     }
 
+    public byte[] getContent() {
+        return this.contents;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
     private byte[] getContents() {
         File f = Utils.join(CWD, name);
         return Utils.readContents(f);

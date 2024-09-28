@@ -103,7 +103,7 @@ public class SomeObj {
         for (String commitId : commitList) {
             Commit currentCommit = Commit.load(commitId);
             System.out.println("===\n" +
-                    "commit " + currentCommit + "\n" +
+                    "commit " + commitId + "\n" +
                     "Date: " + currentCommit.getTimestamp() + "\n" +
                     currentCommit.getMessage() + "\n");
         }
@@ -170,16 +170,17 @@ public class SomeObj {
         if (Commit.load(commitId) == null) {
             Utils.exitWithMessage("No commit with that id exists.");
         }
-        String fileId = null;
+        String fileSHA1 = null;
         Commit currentCommit = Commit.load(commitId);
         //List<String> fileList = Utils.plainFilenamesIn(CWD);
         if (!currentCommit.getBlobTree().containsValue(fileName)) { //当前commit里没有
             Utils.exitWithMessage("File does not exist in that commit.");
         } else {
             Utils.restrictedDelete(Utils.join(CWD, fileName));  //CWD中有的话就删了再加，没有的话这条忽略
-            fileId = valueToKey(currentCommit.getBlobTree(), fileName);
-            byte[] contents = Utils.readContents(Utils.join(OBJECTS_DIR, fileId));  //file实例化
-            Utils.writeContents(Utils.join(CWD, fileName), (Object) contents);  //在CWD中写入
+            fileSHA1 = valueToKey(currentCommit.getBlobTree(), fileName);
+
+            Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
+            Utils.writeContents(Utils.join(CWD, currentBlob.getName()), (Object) currentBlob.getContent());
         }
 
     }
@@ -194,8 +195,8 @@ public class SomeObj {
         if (!branchNameList.contains(branchName)) {
             Utils.exitWithMessage("No such branch exists.");
         }
-        Commit currentCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));   //看CWD里有没有currentCommit没有的，如果存在就报错
-        checkoutCommit(currentCommit);
+        Commit branchCommit = Commit.load(Branch.getCommitId(branchName));  //看CWD里有没有currentCommit没有的，如果存在就报错
+        checkoutCommit(branchCommit);
         HEAD.setBranchName(branchName);
     }
 
@@ -209,19 +210,18 @@ public class SomeObj {
                 Utils.exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
             }
         }
-        //Set<String> fileSHA1 = commit.getBlobTree().keySet();
+
         if (commit.getSHA1().equals(headCommitId)) { //如果目标commit就是HEAD指针，不做改变
             return;
         }
         for (String fileSHA1 : commit.getBlobTree().keySet()) {
-            //String blobId = commit.getBlobTree().get(fileName );
-            //String blobId = valueToKey(commit.getBlobTree(), fileName);
-            byte[] blobContents = Utils.readContents(Utils.join(OBJECTS_DIR, fileSHA1));
-            Utils.writeContents(Utils.join(CWD, commit.getBlobTree().get(fileSHA1)), (Object) blobContents);
+            Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
+            Utils.writeContents(Utils.join(CWD, currentBlob.getName()), (Object) currentBlob.getContent());
         }
         for (String fileSHA1 : headCommit.getBlobTree().keySet()) {
             if (!commit.getBlobTree().containsKey(fileSHA1)) {
-                Utils.restrictedDelete(Utils.join(CWD, headCommit.getBlobTree().get(fileSHA1)));
+                Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
+                Utils.join(CWD, currentBlob.getName()).delete();
             }
         }
         stagingArea.clear();
