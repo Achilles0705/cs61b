@@ -55,7 +55,7 @@ public class Commit implements Serializable {
         File parentFile = Utils.join(COMMITS_DIR, parent1);
         if (parentFile.exists()) {
             parentCommit = Utils.readObject(parentFile, Commit.class);
-            this.blobTree.putAll(parentCommit.blobTree); //把父commit的blobs加到现在commit中
+            this.blobTree.putAll(parentCommit.getBlobTree()); //把父commit的blobs加到现在commit中
         }
         StagingArea currentStagingArea = StagingArea.load();
         blobTree.putAll(currentStagingArea.getAddStage());  //将暂加区的文件存到树中

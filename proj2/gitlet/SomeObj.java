@@ -175,6 +175,7 @@ public class SomeObj {
             Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
             Utils.writeContents(Utils.join(CWD, currentBlob.getName()), (Object) currentBlob.getContent());
         }
+        Branch.setCommitId(HEAD.getBranchName(), commitId);
     }
 
     public void checkoutBranch(String branchName) {
