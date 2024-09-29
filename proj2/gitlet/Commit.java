@@ -31,17 +31,14 @@ public class Commit implements Serializable {
 
     private String parent2; //远
 
-    private HashMap<String, String> blobTree;   //key是SHA1，value是name
-
-    //private String SHA1;
+    private TreeMap<String, String> blobTree;   //key是SHA1，value是name
 
     public Commit() {
         this.message = "initial commit";
         this.parent1 = null;
         this.parent2 = null;
-        blobTree = new HashMap<>();
-        this.timestamp = this.getDate();
-        //this.SHA1 = calculateSHA1();
+        blobTree = new TreeMap<>();
+        this.timestamp = getDate();
     }
 
     public Commit(String message, String parent1, String parent2) { //根据说明，commit要保留最近的两个父级
@@ -49,8 +46,7 @@ public class Commit implements Serializable {
         this.parent1 = parent1;
         this.parent2 = parent2;
         this.timestamp = getDate();
-        //this.SHA1 = calculateSHA1();
-        blobTree = new HashMap<>();
+        blobTree = new TreeMap<>();
         buildBlobTree();    //对于blob的操作
     }
 
@@ -88,15 +84,18 @@ public class Commit implements Serializable {
     }
 
     private String getDate() {
-        if (this.parent1 == null) {
-            return "00:00:00 UTC, Thursday, 1 January 1970";
-        } else {
+        if (this.timestamp == null) {
             return generateTimestamp();
         }
+        return this.timestamp;
     }
 
     private String generateTimestamp() {    //生成一条当下的时间戳
         SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z");
+        if (this.parent1 == null) {
+            Date defaultDate = new Date(0);
+            return formatter.format(defaultDate);
+        }
         Date date = new Date();
         return formatter.format(date);
     }
@@ -117,16 +116,11 @@ public class Commit implements Serializable {
         return this.parent2;
     }
 
-    public HashMap<String, String> getBlobTree() {
+    public TreeMap<String, String> getBlobTree() {
         return this.blobTree;
     }
 
-    //public String getSHA1() {
-        //return this.SHA1;
-    //}
-
     public void save() {
-        //Utils.writeObject(Utils.join(COMMITS_DIR, this.calculateSHA1()), this);
         Utils.writeObject(Utils.join(COMMITS_DIR, this.getSHA1()), this);
     }
 

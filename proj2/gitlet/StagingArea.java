@@ -1,11 +1,8 @@
 package gitlet;
 
-import java.util.HashSet;
-import java.util.HashMap;
+import java.util.*;
 import java.io.Serializable;
 import java.io.File;
-import java.util.Iterator;
-import java.util.Map;
 
 import static gitlet.Repository.*;
 
@@ -14,12 +11,12 @@ public class StagingArea implements Serializable {
     //public static HashSet<String> removeStage = new HashSet<>();
     //public static HashMap<String, String> addStage = new HashMap<>();
 
-    private HashSet<String> removeStage;
-    private HashMap<String, String> addStage;   //key是SHA1值，value是名字，通过SHA1找名字
+    private TreeSet<String> removeStage;
+    private TreeMap<String, String> addStage;   //key是SHA1值，value是名字，通过SHA1找名字
 
     public StagingArea() {
-        removeStage = new HashSet<>();
-        addStage = new HashMap<>();
+        removeStage = new TreeSet<>();
+        addStage = new TreeMap<>();
     }
 
     public static StagingArea load() {
@@ -30,11 +27,11 @@ public class StagingArea implements Serializable {
         Utils.writeObject(STAGE_FILE, this);
     }
 
-    public HashSet<String> getRemoveStage() {
+    public TreeSet<String> getRemoveStage() {
         return removeStage;
     }
 
-    public HashMap<String, String> getAddStage() {
+    public TreeMap<String, String> getAddStage() {
         return addStage;
     }
 

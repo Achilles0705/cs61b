@@ -23,16 +23,11 @@ public class SomeObj {
         initialCommit.save();
 
         Branch.setCommitId("master", initialCommit.getSHA1());
-        //branches.put(HEAD, "master");
         HEAD.setBranchName("master");
-        //CURRENT_BRANCH = "master";
-        //branches.put(CURRENT_BRANCH,initialCommitId);
     }
 
     public void add(String fileName) {
-        //File f = Utils.join(OBJECTS_DIR, fileName);
         File f = Utils.join(CWD, fileName);
-        //String currentSHA1 = Utils.sha1(f.getAbsolutePath());
         if (!f.exists()) {
             Utils.exitWithMessage("File does not exist.");
         }
@@ -69,9 +64,6 @@ public class SomeObj {
     }
 
     public void rm(String fileName) {
-        //File f = Utils.join(OBJECTS_DIR, fileName);
-        //String currentSHA1 = Utils.sha1(f.getAbsolutePath());
-        //String currentSHA1 = Utils.sha1((Object) Utils.readContents(f));
         StagingArea currentStagingArea = StagingArea.load();
         Commit currentCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
 
@@ -135,8 +127,8 @@ public class SomeObj {
 
     public void status() {  //两种思路 1.把branch换成像lab8一样的列表嵌套链表 2.通过HEAD往parent找，直至找到 3.重构branch
         //较难
-        HashMap<String, String> addStageName = StagingArea.load().getAddStage();
-        HashSet<String> removeStageName = StagingArea.load().getRemoveStage();
+        TreeMap<String, String> addStageName = StagingArea.load().getAddStage();
+        TreeSet<String> removeStageName = StagingArea.load().getRemoveStage();
         List<String> branchNameList = Utils.plainFilenamesIn(BRANCH_DIR);   //branch重构了
 
         Collections.sort(branchNameList);
@@ -169,14 +161,11 @@ public class SomeObj {
     }
 
     public void checkoutCommit_File(String commitId, String fileName) {
-
-        //File f = Utils.join(OBJECTS_DIR, fileName);
         if (Commit.load(commitId) == null) {
             Utils.exitWithMessage("No commit with that id exists.");
         }
         String fileSHA1 = null;
         Commit currentCommit = Commit.load(commitId);
-        //List<String> fileList = Utils.plainFilenamesIn(CWD);
         if (!currentCommit.getBlobTree().containsValue(fileName)) { //当前commit里没有
             Utils.exitWithMessage("File does not exist in that commit.");
         } else {
@@ -186,7 +175,6 @@ public class SomeObj {
             Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
             Utils.writeContents(Utils.join(CWD, currentBlob.getName()), (Object) currentBlob.getContent());
         }
-
     }
 
     public void checkoutBranch(String branchName) {
@@ -264,20 +252,20 @@ public class SomeObj {
         //最难
     }
 
-    private List<String> sortMapNames(HashMap<String, String> map) {
+    private List<String> sortMapNames(TreeMap<String, String> map) {
         Collection<String> names = map.values();
         List<String> namesList = new ArrayList<>(names);
         Collections.sort(namesList);    //分支按名字字典排序
         return namesList;
     }
 
-    private List<String> sortSetNames(HashSet<String> set) {
+    private List<String> sortSetNames(TreeSet<String> set) {
         List<String> namesList = new ArrayList<>(set);
         Collections.sort(namesList);    //分支按名字字典排序
         return namesList;
     }
 
-    private static String valueToKey(HashMap<String, String> map, String name) {
+    private static String valueToKey(TreeMap<String, String> map, String name) {
         Iterator<Map.Entry<String, String>> iterator = map.entrySet().iterator();
         while (iterator.hasNext()) {    //通过value找key
             Map.Entry<String, String> entry = iterator.next();
