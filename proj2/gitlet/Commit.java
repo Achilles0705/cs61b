@@ -33,12 +33,15 @@ public class Commit implements Serializable {
 
     private HashMap<String, String> blobTree;   //key是SHA1，value是name
 
+    //private String SHA1;
+
     public Commit() {
         this.message = "initial commit";
         this.parent1 = null;
         this.parent2 = null;
         blobTree = new HashMap<>();
         this.timestamp = this.getDate();
+        //this.SHA1 = calculateSHA1();
     }
 
     public Commit(String message, String parent1, String parent2) { //根据说明，commit要保留最近的两个父级
@@ -46,25 +49,9 @@ public class Commit implements Serializable {
         this.parent1 = parent1;
         this.parent2 = parent2;
         this.timestamp = getDate();
+        //this.SHA1 = calculateSHA1();
         blobTree = new HashMap<>();
-        //File f = Utils.join(GITLET_DIR, message);
-
         buildBlobTree();    //对于blob的操作
-        //Utils.writeObject(f, this); //写入
-        //String curSHA1 = Utils.sha1(f);
-        //HEAD = curSHA1; //HEAD指针为最新commit
-
-        /*if (parent1_SHA1 == null) { //更新两个全局parent
-            parent1_SHA1 = curSHA1;
-        } else if (parent2_SHA1 == null) {
-            parent2_SHA1 = curSHA1;
-        } else {
-            //parent2_SHA1 = curSHA1;
-            //parent1_SHA1 = parent2_SHA1;
-            parent1_SHA1 = HEADCommit.parent2;
-            parent2_SHA1 = HEAD;
-            HEAD = curSHA1;
-        }*/
     }
 
     private void buildBlobTree() {
@@ -134,7 +121,12 @@ public class Commit implements Serializable {
         return this.blobTree;
     }
 
+    //public String getSHA1() {
+        //return this.SHA1;
+    //}
+
     public void save() {
+        //Utils.writeObject(Utils.join(COMMITS_DIR, this.calculateSHA1()), this);
         Utils.writeObject(Utils.join(COMMITS_DIR, this.getSHA1()), this);
     }
 

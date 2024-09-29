@@ -96,6 +96,10 @@ public class SomeObj {
                     currentCommit.getMessage() + "\n");
             currentCommit = Commit.load(currentCommit.getParent1());
         }
+        System.out.println("===\n" +
+                "commit " + currentCommit.getSHA1() + "\n" +
+                "Date: " + currentCommit.getTimestamp() + "\n" +
+                currentCommit.getMessage() + "\n");
     }
 
     public void global_log() {  //合并提交还没有处理
