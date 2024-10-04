@@ -3,6 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 import static gitlet.Repository.*;
 
@@ -99,6 +100,14 @@ public class Main {
                 checkCWD();
                 checkArgsNum(args, 2);
                 bloop.merge(args[1]);
+                break;
+            case "head":
+                System.out.println(Branch.getCommitId(HEAD.getBranchName()));
+                break;
+            case "printBlob":
+                Commit currentCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
+                TreeMap<String, String> currentCommitBlobTree = currentCommit.getBlobTree();
+                System.out.println(currentCommitBlobTree);
                 break;
             default:
                 System.out.println("No command with that name exists.");

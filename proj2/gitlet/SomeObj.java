@@ -164,13 +164,12 @@ public class SomeObj {
         if (Commit.load(commitId) == null) {
             Utils.exitWithMessage("No commit with that id exists.");
         }
-        String fileSHA1 = null;
-        Commit currentCommit = Commit.load(commitId);
-        if (!currentCommit.getBlobTree().containsValue(fileName)) { //当前commit里没有
+        Commit targetCommit = Commit.load(commitId);
+        if (!targetCommit.getBlobTree().containsValue(fileName)) { //目标commit里没有
             Utils.exitWithMessage("File does not exist in that commit.");
         } else {
-            Utils.restrictedDelete(Utils.join(CWD, fileName));  //CWD中有的话就删了再加，没有的话这条忽略
-            fileSHA1 = valueToKey(currentCommit.getBlobTree(), fileName);
+            //Utils.restrictedDelete(Utils.join(CWD, fileName));  //CWD中有的话就删了再加，没有的话这条忽略
+            String fileSHA1 = valueToKey(targetCommit.getBlobTree(), fileName);
 
             Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
             Utils.writeContents(Utils.join(CWD, currentBlob.getName()), (Object) currentBlob.getContent());
@@ -266,15 +265,14 @@ public class SomeObj {
         return namesList;
     }
 
-    private static String valueToKey(TreeMap<String, String> map, String name) {
-        Iterator<Map.Entry<String, String>> iterator = map.entrySet().iterator();
-        while (iterator.hasNext()) {    //通过value找key
-            Map.Entry<String, String> entry = iterator.next();
+    public static String valueToKey(TreeMap<String, String> map, String name) {
+        for (Map.Entry<String, String> entry : map.entrySet()) {
             if (entry.getValue().equals(name)) {
                 return entry.getKey();
             }
         }
         return null;
     }
+
 
 }

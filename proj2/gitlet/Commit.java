@@ -58,6 +58,14 @@ public class Commit implements Serializable {
             this.blobTree.putAll(parentCommit.getBlobTree()); //把父commit的blobs加到现在commit中
         }
         StagingArea currentStagingArea = StagingArea.load();
+
+        for (Map.Entry<String, String> entry : currentStagingArea.getAddStage().entrySet()) {   //有同名文件则删除
+            if (blobTree.containsValue(entry.getValue())) {
+                String fileSHA1 = SomeObj.valueToKey(blobTree, entry.getValue());
+                blobTree.remove(fileSHA1);
+            }
+        }
+
         blobTree.putAll(currentStagingArea.getAddStage());  //将暂加区的文件存到树中
         for (String removeStageFileName : currentStagingArea.getRemoveStage()) {    //暂减区的从中删除
             blobTree.entrySet().removeIf(entry -> entry.getValue().equals(removeStageFileName));
