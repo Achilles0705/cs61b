@@ -209,15 +209,15 @@ public class SomeObj {
         if (commit.getSHA1().equals(headCommitId)) { //如果目标commit就是HEAD指针，不做改变
             return;
         }
-        for (String fileSHA1 : commit.getBlobTree().keySet()) {
-            Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
-            Utils.writeContents(Utils.join(CWD, currentBlob.getName()), (Object) currentBlob.getContent());
-        }
         for (String fileSHA1 : headCommit.getBlobTree().keySet()) {
             if (!commit.getBlobTree().containsKey(fileSHA1)) {
                 Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
                 Utils.join(CWD, currentBlob.getName()).delete();
             }
+        }
+        for (String fileSHA1 : commit.getBlobTree().keySet()) {
+            Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
+            Utils.writeContents(Utils.join(CWD, currentBlob.getName()), (Object) currentBlob.getContent());
         }
         stagingArea.clear();
         stagingArea.save();
