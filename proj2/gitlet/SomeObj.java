@@ -28,17 +28,20 @@ public class SomeObj {
 
     public void add(String fileName) {
         File f = Utils.join(CWD, fileName);
-        if (!f.exists()) {
+        StagingArea currentStagingArea = StagingArea.load();
+        if (!f.exists() && !currentStagingArea.getRemoveStage().contains(fileName)) {
             Utils.exitWithMessage("File does not exist.");
+        }
+        if (currentStagingArea.getRemoveStage().contains(fileName)) { //若在删除区，则从中删除
+            currentStagingArea.getRemoveStage().remove(fileName);
+            currentStagingArea.save();
+            return;
         }
         Blob currentBlob = new Blob(fileName);
         String currentSHA1 = currentBlob.getSHA1();
         Commit headCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
 
-        StagingArea currentStagingArea = StagingArea.load();
-        if (currentStagingArea.getRemoveStage().contains(currentSHA1)) { //若在删除区，则从中删除
-            currentStagingArea.getRemoveStage().remove(currentSHA1);
-        } else if (headCommit.getBlobTree().containsKey(currentSHA1)) {  //最近提交里有，且完全相同
+        if (headCommit.getBlobTree().containsKey(currentSHA1)) {  //最近提交里有，且完全相同
             if (currentStagingArea.getAddStage().containsValue(fileName)) { //在暂加区中，就删掉；不在暂加区不需要改动
                 currentStagingArea.addStage_removeValue(fileName);
             }

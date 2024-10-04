@@ -1,7 +1,5 @@
 package gitlet;
 
-// TODO: any imports you need here
-
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -9,14 +7,12 @@ import java.util.*;
 import static gitlet.Repository.*;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
  *  @author Achilles
  */
 public class Commit implements Serializable {
     /**
-     * TODO: add instance variables here.
      *
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
@@ -145,6 +141,4 @@ public class Commit implements Serializable {
         }
     }
 
-
-    /* TODO: fill in the rest of this class. */
 }
