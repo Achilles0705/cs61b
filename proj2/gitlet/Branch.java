@@ -1,6 +1,8 @@
 package gitlet;
 
 import java.io.File;
+import java.io.Serializable;
+
 import static gitlet.Repository.*;
 
 public class Branch {

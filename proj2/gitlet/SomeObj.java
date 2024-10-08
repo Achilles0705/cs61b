@@ -247,12 +247,61 @@ public class SomeObj {
         if (Commit.load(commitId) == null) {
             Utils.exitWithMessage("No commit with that id exists.");
         }
-        checkoutCommit(commit);
+        //checkoutCommit(commit);
+        String targetBranch = null;
+        List<String> branchList = Utils.plainFilenamesIn(BRANCH_DIR);
+        outerLoop:
+        while(commit.getParent1() != null) {   //从commitId找到对应的Branch
+            for (String branchName : branchList) {
+                String branchCommitId = Utils.readContentsAsString(Utils.join(BRANCH_DIR, branchName));
+                if (Objects.equals(branchCommitId, commitId)) {
+                    targetBranch = branchName;
+                    break outerLoop;
+                }
+            }
+            commit = Commit.load(commit.getParent1());
+        }
+        checkoutBranch(targetBranch);
         Branch.setCommitId(HEAD.getBranchName(), commitId);
     }
 
     public void merge(String branchName) {
         //最难
+        String headCommitId = Branch.getCommitId(HEAD.getBranchName());
+        String branchCommitId = Branch.getCommitId(branchName);
+        String splitPointCommitId = merge_findAncestor(Branch.getCommitId(HEAD.getBranchName()), Branch.getCommitId(branchName));
+    }
+
+    private String merge_findAncestor(String headCommitId, String targetCommitId) {
+
+        Queue<String> headCommitQueue = new LinkedList<>();
+        Queue<String> targetCommitQueue = new LinkedList<>();
+        HashSet<String> booked = new HashSet<>();
+        headCommitQueue.add(headCommitId);
+        targetCommitQueue.add(targetCommitId);
+
+        while(!headCommitQueue.isEmpty()) {
+            String currentCommitId = headCommitQueue.poll();
+            if (Objects.equals(currentCommitId, targetCommitId)) {
+                return currentCommitId;
+            }
+            booked.add(currentCommitId);
+            Commit cur = Commit.load(currentCommitId);
+            headCommitQueue.add(cur.getParent1());
+            headCommitQueue.add(cur.getParent2());
+        }
+
+        while(!targetCommitQueue.isEmpty()) {
+            String currentCommitId = targetCommitQueue.poll();
+            if (booked.contains(currentCommitId)) {
+                return currentCommitId;
+            }
+            Commit cur = Commit.load(targetCommitId);
+            headCommitQueue.add(cur.getParent1());
+            headCommitQueue.add(cur.getParent2());
+        }
+        return null;
+
     }
 
     private List<String> sortMapNames(TreeMap<String, String> map) {
