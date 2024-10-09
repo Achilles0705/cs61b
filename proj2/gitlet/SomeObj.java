@@ -1,5 +1,6 @@
 package gitlet;
 
+import javax.sql.rowset.JdbcRowSet;
 import java.io.File;
 import java.util.*;
 
@@ -52,7 +53,7 @@ public class SomeObj {
         currentBlob.save();
     }
 
-    public void commit(String message) {
+    public static void commit(String message) {
         StagingArea currentStagingArea = StagingArea.load();
         if (currentStagingArea.getAddStage().isEmpty() && currentStagingArea.getRemoveStage().isEmpty()) {
             Utils.exitWithMessage("No changes added to the commit.");
@@ -265,11 +266,121 @@ public class SomeObj {
         Branch.setCommitId(HEAD.getBranchName(), commitId);
     }
 
-    public void merge(String branchName) {
-        //最难
-        String headCommitId = Branch.getCommitId(HEAD.getBranchName());
+    public boolean isConflict = false;
+    public HashSet<String> skipFiles = new HashSet<>();
+
+    public void merge(String branchName) {  //最难
+
+        String newMessage = null;
+        String headCommitId = Branch.getCommitId(HEAD.getBranchName()); //CWD中是headCommit的文件
         String branchCommitId = Branch.getCommitId(branchName);
-        String splitPointCommitId = merge_findAncestor(Branch.getCommitId(HEAD.getBranchName()), Branch.getCommitId(branchName));
+        String splitPointCommitId = merge_findAncestor(headCommitId, branchCommitId);
+
+        merge_splitPointCheck(Commit.load(headCommitId), Commit.load(branchCommitId), Commit.load(splitPointCommitId));
+        merge_notSplitPointCheck(Commit.load(headCommitId), Commit.load(branchCommitId), Commit.load(splitPointCommitId));
+
+        List<String> fileList = Utils.plainFilenamesIn(CWD);
+        for (String fileName : fileList) {
+            if (!skipFiles.contains(fileName)) {
+                add(fileName);
+            }
+        }
+        if (isConflict) {
+            checkoutCommit(Commit.load(headCommitId));
+            Utils.exitWithMessage("Encountered a merge conflict.");
+        } else {
+            newMessage = "Merged " + branchName + " into " + HEAD.getBranchName() + ".";
+            //Commit newCommit = new Commit(newMessage, headCommitId, branchCommitId);
+            //newCommit.save();
+            commit(newMessage);
+        }
+
+    }
+
+    private void merge_splitPointCheck(Commit headCommit, Commit branchCommit, Commit splitPointCommit) {
+
+        TreeMap<String,String> splitPointTree = splitPointCommit.getBlobTree();
+        TreeMap<String,String> headCommitTree = headCommit.getBlobTree();
+        TreeMap<String,String> branchCommitTree = branchCommit.getBlobTree();
+
+        for (Map.Entry<String, String> entry : splitPointTree.entrySet()) {
+            String currentKey = entry.getKey();
+            String currentName = entry.getValue();
+            if (headCommitTree.containsKey(currentKey) && branchCommitTree.containsKey(currentKey)) {
+                continue;
+            } else if (headCommitTree.containsKey(currentKey)) {   //unmodified in HEAD
+                if (branchCommitTree.containsValue(currentName)) { //modified in other--1
+                    //writeContentsInCWD(branchCommitTree, currentName);
+                    checkoutCommit_File(branchCommit.getSHA1(), currentName);
+                } else if (!branchCommitTree.containsValue(currentName)) { //not present in other--6
+                    rm(currentName);
+                }
+            } else if (branchCommitTree.containsKey(currentKey)) {   //unmodified in other
+                if (headCommitTree.containsValue(currentName) && !headCommitTree.containsKey(currentKey)) {
+                    //modified in HEAD--2
+                    //writeContentsInCWD(headCommitTree, currentName);
+                    checkoutCommit_File(headCommit.getSHA1(), currentName);
+                }
+                //not present in HEAD--7
+            } else if (headCommitTree.containsValue(entry.getValue()) && branchCommitTree.containsValue(currentName)) {
+                String headKey = valueToKey(headCommitTree, currentName);
+                String branchKey = valueToKey(branchCommitTree, currentName);
+                if (!Objects.equals(headKey, branchKey)) {  //in diff way--3b,3a不变
+                    printConflictFileContents(headKey, branchKey);
+                }
+            } else if (headCommitTree.containsValue(currentName) && !branchCommitTree.containsValue(currentName)
+                        || !headCommitTree.containsValue(currentName) && branchCommitTree.containsValue(currentName)) {
+                String headKey = valueToKey(headCommitTree, currentName);
+                String branchKey = valueToKey(branchCommitTree, currentName);
+                printConflictFileContents(headKey, branchKey);
+            } else if (!headCommitTree.containsValue(currentName) && !branchCommitTree.containsValue(currentName)) {
+                skipFiles.add(currentName);
+            }
+        }
+
+    }
+
+    private void printConflictFileContents(String headBlobId, String branchBlobId) {
+
+        isConflict = true;
+        String currentContents;
+        String mergedContents;
+        if (headBlobId == null) {
+            currentContents = "";
+        } else {
+            Blob blob = Utils.readObject(Utils.join(OBJECTS_DIR, headBlobId), Blob.class);
+            currentContents = new String(blob.getContent());
+        }
+        if (branchBlobId == null) {
+            mergedContents = "";
+        } else {
+            Blob blob = Utils.readObject(Utils.join(OBJECTS_DIR, branchBlobId), Blob.class);
+            mergedContents = new String(blob.getContent());
+        }
+        System.out.println("<<<<<<< HEAD\n" + currentContents + "=======\n" + mergedContents + ">>>>>>>\n");
+    }
+
+    /*private void writeContentsInCWD(TreeMap<String, String> map, String name) {
+        String key = valueToKey(map, name);
+        File currentPath = Utils.join(OBJECTS_DIR, key);
+        File CWDPath = Utils.join(CWD, name);
+        Blob currentBlob = Utils.readObject(currentPath, Blob.class);
+        Utils.writeContents(CWDPath, (Object) currentBlob.getContent());
+    }*/
+
+    private void merge_notSplitPointCheck(Commit headCommit, Commit branchCommit, Commit splitPointCommit) {
+
+        TreeMap<String,String> splitPointTree = splitPointCommit.getBlobTree();
+        TreeMap<String,String> headCommitTree = headCommit.getBlobTree();
+        TreeMap<String,String> branchCommitTree = branchCommit.getBlobTree();
+
+        for (Map.Entry<String, String> entry : branchCommitTree.entrySet()) {   //5,4不变
+            if (!splitPointTree.containsValue(entry.getValue()) && !headCommitTree.containsValue(entry.getValue())) {
+                //writeContentsInCWD(branchCommitTree, entry.getValue());
+                checkoutCommit_File(branchCommit.getSHA1(), entry.getValue());
+            }
+        }
+
     }
 
     private String merge_findAncestor(String headCommitId, String targetCommitId) {
@@ -287,8 +398,12 @@ public class SomeObj {
             }
             booked.add(currentCommitId);
             Commit cur = Commit.load(currentCommitId);
-            headCommitQueue.add(cur.getParent1());
-            headCommitQueue.add(cur.getParent2());
+            if (cur.getParent1() != null) {
+                headCommitQueue.add(cur.getParent1());
+            }
+            if (cur.getParent2() != null) {
+                headCommitQueue.add(cur.getParent2());
+            }
         }
 
         while(!targetCommitQueue.isEmpty()) {
@@ -296,9 +411,13 @@ public class SomeObj {
             if (booked.contains(currentCommitId)) {
                 return currentCommitId;
             }
-            Commit cur = Commit.load(targetCommitId);
-            headCommitQueue.add(cur.getParent1());
-            headCommitQueue.add(cur.getParent2());
+            Commit cur = Commit.load(currentCommitId);
+            if (cur.getParent1() != null) {
+                targetCommitQueue.add(cur.getParent1());
+            }
+            if (cur.getParent2() != null) {
+                targetCommitQueue.add(cur.getParent2());
+            }
         }
         return null;
 
@@ -325,6 +444,5 @@ public class SomeObj {
         }
         return null;
     }
-
 
 }
