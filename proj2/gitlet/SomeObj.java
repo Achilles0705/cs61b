@@ -1,6 +1,5 @@
 package gitlet;
 
-import javax.sql.rowset.JdbcRowSet;
 import java.io.File;
 import java.util.*;
 
@@ -271,6 +270,18 @@ public class SomeObj {
 
     public void merge(String branchName) {  //最难
 
+        StagingArea currentStage = StagingArea.load();
+        if (!currentStage.getAddStage().isEmpty() || !currentStage.getRemoveStage().isEmpty()) {
+            Utils.exitWithMessage("You have uncommitted changes.");
+        }
+        List<String> branchNameList = Utils.plainFilenamesIn(BRANCH_DIR);
+        if (!branchNameList.contains(branchName)) {
+            Utils.exitWithMessage("No such branch exists.");
+        }
+        if (Objects.equals(branchName, HEAD.getBranchName())) {
+            Utils.exitWithMessage("Cannot merge a branch with itself.");
+        }
+
         String newMessage = null;
         String headCommitId = Branch.getCommitId(HEAD.getBranchName()); //CWD中是headCommit的文件
         String branchCommitId = Branch.getCommitId(branchName);
@@ -285,15 +296,17 @@ public class SomeObj {
                 add(fileName);
             }
         }
+        newMessage = "Merged " + branchName + " into " + HEAD.getBranchName() + ".";
+        commit(newMessage);
         if (isConflict) {
-            checkoutCommit(Commit.load(headCommitId));
+            //checkoutCommit(Commit.load(headCommitId));
             Utils.exitWithMessage("Encountered a merge conflict.");
-        } else {
-            newMessage = "Merged " + branchName + " into " + HEAD.getBranchName() + ".";
+        } //else {
+            //newMessage = "Merged " + branchName + " into " + HEAD.getBranchName() + ".";
             //Commit newCommit = new Commit(newMessage, headCommitId, branchCommitId);
             //newCommit.save();
-            commit(newMessage);
-        }
+            //commit(newMessage);
+        //}
 
     }
 
@@ -306,11 +319,12 @@ public class SomeObj {
         for (Map.Entry<String, String> entry : splitPointTree.entrySet()) {
             String currentKey = entry.getKey();
             String currentName = entry.getValue();
+            String headKey = valueToKey(headCommitTree, currentName);
+            String branchKey = valueToKey(branchCommitTree, currentName);
             if (headCommitTree.containsKey(currentKey) && branchCommitTree.containsKey(currentKey)) {
                 continue;
             } else if (headCommitTree.containsKey(currentKey)) {   //unmodified in HEAD
                 if (branchCommitTree.containsValue(currentName)) { //modified in other--1
-                    //writeContentsInCWD(branchCommitTree, currentName);
                     checkoutCommit_File(branchCommit.getSHA1(), currentName);
                 } else if (!branchCommitTree.containsValue(currentName)) { //not present in other--6
                     rm(currentName);
@@ -318,21 +332,22 @@ public class SomeObj {
             } else if (branchCommitTree.containsKey(currentKey)) {   //unmodified in other
                 if (headCommitTree.containsValue(currentName) && !headCommitTree.containsKey(currentKey)) {
                     //modified in HEAD--2
-                    //writeContentsInCWD(headCommitTree, currentName);
                     checkoutCommit_File(headCommit.getSHA1(), currentName);
                 }
                 //not present in HEAD--7
             } else if (headCommitTree.containsValue(entry.getValue()) && branchCommitTree.containsValue(currentName)) {
-                String headKey = valueToKey(headCommitTree, currentName);
-                String branchKey = valueToKey(branchCommitTree, currentName);
+                //String headKey = valueToKey(headCommitTree, currentName);
+                //String branchKey = valueToKey(branchCommitTree, currentName);
                 if (!Objects.equals(headKey, branchKey)) {  //in diff way--3b,3a不变
-                    printConflictFileContents(headKey, branchKey);
+                    //printConflictFileContents(headKey, branchKey);
+                    Utils.writeContents(Utils.join(OBJECTS_DIR, currentName), conflictFileContents(headKey, branchKey));
                 }
             } else if (headCommitTree.containsValue(currentName) && !branchCommitTree.containsValue(currentName)
                         || !headCommitTree.containsValue(currentName) && branchCommitTree.containsValue(currentName)) {
-                String headKey = valueToKey(headCommitTree, currentName);
-                String branchKey = valueToKey(branchCommitTree, currentName);
-                printConflictFileContents(headKey, branchKey);
+                //String headKey = valueToKey(headCommitTree, currentName);
+                //String branchKey = valueToKey(branchCommitTree, currentName);
+                //printConflictFileContents(headKey, branchKey);
+                Utils.writeContents(Utils.join(OBJECTS_DIR, currentName), conflictFileContents(headKey, branchKey));
             } else if (!headCommitTree.containsValue(currentName) && !branchCommitTree.containsValue(currentName)) {
                 skipFiles.add(currentName);
             }
@@ -340,7 +355,7 @@ public class SomeObj {
 
     }
 
-    private void printConflictFileContents(String headBlobId, String branchBlobId) {
+    private String conflictFileContents(String headBlobId, String branchBlobId) {
 
         isConflict = true;
         String currentContents;
@@ -357,16 +372,8 @@ public class SomeObj {
             Blob blob = Utils.readObject(Utils.join(OBJECTS_DIR, branchBlobId), Blob.class);
             mergedContents = new String(blob.getContent());
         }
-        System.out.println("<<<<<<< HEAD\n" + currentContents + "=======\n" + mergedContents + ">>>>>>>\n");
+        return "<<<<<<< HEAD\n" + currentContents + "=======\n" + mergedContents + ">>>>>>>\n";
     }
-
-    /*private void writeContentsInCWD(TreeMap<String, String> map, String name) {
-        String key = valueToKey(map, name);
-        File currentPath = Utils.join(OBJECTS_DIR, key);
-        File CWDPath = Utils.join(CWD, name);
-        Blob currentBlob = Utils.readObject(currentPath, Blob.class);
-        Utils.writeContents(CWDPath, (Object) currentBlob.getContent());
-    }*/
 
     private void merge_notSplitPointCheck(Commit headCommit, Commit branchCommit, Commit splitPointCommit) {
 
@@ -375,9 +382,17 @@ public class SomeObj {
         TreeMap<String,String> branchCommitTree = branchCommit.getBlobTree();
 
         for (Map.Entry<String, String> entry : branchCommitTree.entrySet()) {   //5,4不变
+            String currentName = entry.getValue();
+            String headKey = valueToKey(headCommitTree, currentName);
+            String branchKey = valueToKey(branchCommitTree, currentName);
             if (!splitPointTree.containsValue(entry.getValue()) && !headCommitTree.containsValue(entry.getValue())) {
-                //writeContentsInCWD(branchCommitTree, entry.getValue());
                 checkoutCommit_File(branchCommit.getSHA1(), entry.getValue());
+            } else if (headCommitTree.containsValue(entry.getValue()) && !headCommitTree.containsKey(entry.getKey())) {
+                //String currentName = entry.getValue();
+                //String headKey = valueToKey(headCommitTree, currentName);
+                //String branchKey = valueToKey(branchCommitTree, currentName);
+                //printConflictFileContents(headKey, branchKey);
+                Utils.writeContents(Utils.join(OBJECTS_DIR, currentName), conflictFileContents(headKey, branchKey));
             }
         }
 
