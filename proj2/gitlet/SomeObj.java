@@ -66,6 +66,20 @@ public class SomeObj {
         Branch.setCommitId(HEAD.getBranchName(), currentCommit.getSHA1());
     }
 
+    public static void mergeCommit(String message, String head, String another) {
+        StagingArea currentStagingArea = StagingArea.load();
+        /*if (currentStagingArea.getAddStage().isEmpty() && currentStagingArea.getRemoveStage().isEmpty()) {
+            Utils.exitWithMessage("No changes added to the commit.");
+        }*/
+        if (message.isEmpty()) {
+            Utils.exitWithMessage("Please enter a commit message.");
+        }
+        //String headCommitId = Branch.getCommitId(HEAD.getBranchName());
+        Commit currentCommit = new Commit(message, head, another);
+        currentCommit.save();
+        Branch.setCommitId(HEAD.getBranchName(), currentCommit.getSHA1());
+    }
+
     public void rm(String fileName) {
         StagingArea currentStagingArea = StagingArea.load();
         Commit currentCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
@@ -82,13 +96,23 @@ public class SomeObj {
         currentStagingArea.save();
     }
 
-    public void log() { //合并提交还没有处理
+    public void log() { //merge情况已处理
         Commit currentCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
         while (currentCommit.getParent1() != null) {
-            System.out.println("===\n" +
-                    "commit " + currentCommit.getSHA1() + "\n" +
-                    "Date: " + currentCommit.getTimestamp() + "\n" +
-                    currentCommit.getMessage() + "\n");
+            if (currentCommit.getParent2() == null) {
+                System.out.println("===\n" +
+                        "commit " + currentCommit.getSHA1() + "\n" +
+                        "Date: " + currentCommit.getTimestamp() + "\n" +
+                        currentCommit.getMessage() + "\n");
+            } else {
+                String shortId1 = currentCommit.getParent1().substring(0, 7);
+                String shortId2 = currentCommit.getParent2().substring(0, 7);
+                System.out.println("===\n" +
+                        "commit " + currentCommit.getSHA1() + "\n" +
+                        "Merge: " + shortId1 + " " + shortId2 + "\n" +
+                        "Date: " + currentCommit.getTimestamp() + "\n" +
+                        currentCommit.getMessage() + "\n");
+            }
             currentCommit = Commit.load(currentCommit.getParent1());
         }
         System.out.println("===\n" +
@@ -97,14 +121,24 @@ public class SomeObj {
                 currentCommit.getMessage() + "\n");
     }
 
-    public void global_log() {  //合并提交还没有处理
+    public void global_log() {  //merge情况已处理
         List<String> commitList = Utils.plainFilenamesIn(COMMITS_DIR);
         for (String commitId : commitList) {
             Commit currentCommit = Commit.load(commitId);
-            System.out.println("===\n" +
-                    "commit " + commitId + "\n" +
-                    "Date: " + currentCommit.getTimestamp() + "\n" +
-                    currentCommit.getMessage() + "\n");
+            if (currentCommit.getParent2() == null) {
+                System.out.println("===\n" +
+                        "commit " + commitId + "\n" +
+                        "Date: " + currentCommit.getTimestamp() + "\n" +
+                        currentCommit.getMessage() + "\n");
+            } else {
+                String shortId1 = currentCommit.getParent1().substring(0, 7);
+                String shortId2 = currentCommit.getParent2().substring(0, 7);
+                System.out.println("===\n" +
+                        "commit " + commitId + "\n" +
+                        "Merge: " + shortId1 + " " + shortId2 + "\n" +
+                        "Date: " + currentCommit.getTimestamp() + "\n" +
+                        currentCommit.getMessage() + "\n");
+            }
         }
     }
 
@@ -254,15 +288,16 @@ public class SomeObj {
         while(commit.getParent1() != null) {   //从commitId找到对应的Branch
             for (String branchName : branchList) {
                 String branchCommitId = Utils.readContentsAsString(Utils.join(BRANCH_DIR, branchName));
-                if (Objects.equals(branchCommitId, commitId)) {
+                if (Objects.equals(branchCommitId, commit.getSHA1())) {
                     targetBranch = branchName;
                     break outerLoop;
                 }
             }
             commit = Commit.load(commit.getParent1());
         }
-        checkoutBranch(targetBranch);
+        //checkoutBranch(targetBranch);
         Branch.setCommitId(HEAD.getBranchName(), commitId);
+        checkoutBranch(targetBranch);
     }
 
     public boolean isConflict = false;
@@ -297,7 +332,7 @@ public class SomeObj {
             }
         }
         newMessage = "Merged " + branchName + " into " + HEAD.getBranchName() + ".";
-        commit(newMessage);
+        mergeCommit(newMessage, headCommitId, branchCommitId);
         if (isConflict) {
             //checkoutCommit(Commit.load(headCommitId));
             Utils.exitWithMessage("Encountered a merge conflict.");
@@ -336,18 +371,11 @@ public class SomeObj {
                 }
                 //not present in HEAD--7
             } else if (headCommitTree.containsValue(entry.getValue()) && branchCommitTree.containsValue(currentName)) {
-                //String headKey = valueToKey(headCommitTree, currentName);
-                //String branchKey = valueToKey(branchCommitTree, currentName);
                 if (!Objects.equals(headKey, branchKey)) {  //in diff way--3b,3a不变
-                    //printConflictFileContents(headKey, branchKey);
-                    Utils.writeContents(Utils.join(OBJECTS_DIR, currentName), conflictFileContents(headKey, branchKey));
+                    Utils.writeContents(Utils.join(CWD, currentName), conflictFileContents(headKey, branchKey));
                 }
-            } else if (headCommitTree.containsValue(currentName) && !branchCommitTree.containsValue(currentName)
-                        || !headCommitTree.containsValue(currentName) && branchCommitTree.containsValue(currentName)) {
-                //String headKey = valueToKey(headCommitTree, currentName);
-                //String branchKey = valueToKey(branchCommitTree, currentName);
-                //printConflictFileContents(headKey, branchKey);
-                Utils.writeContents(Utils.join(OBJECTS_DIR, currentName), conflictFileContents(headKey, branchKey));
+            } else if (headCommitTree.containsValue(currentName) && !branchCommitTree.containsValue(currentName)) {
+                Utils.writeContents(Utils.join(CWD, currentName), conflictFileContents(headKey, branchKey));
             } else if (!headCommitTree.containsValue(currentName) && !branchCommitTree.containsValue(currentName)) {
                 skipFiles.add(currentName);
             }
@@ -387,12 +415,8 @@ public class SomeObj {
             String branchKey = valueToKey(branchCommitTree, currentName);
             if (!splitPointTree.containsValue(entry.getValue()) && !headCommitTree.containsValue(entry.getValue())) {
                 checkoutCommit_File(branchCommit.getSHA1(), entry.getValue());
-            } else if (headCommitTree.containsValue(entry.getValue()) && !headCommitTree.containsKey(entry.getKey())) {
-                //String currentName = entry.getValue();
-                //String headKey = valueToKey(headCommitTree, currentName);
-                //String branchKey = valueToKey(branchCommitTree, currentName);
-                //printConflictFileContents(headKey, branchKey);
-                Utils.writeContents(Utils.join(OBJECTS_DIR, currentName), conflictFileContents(headKey, branchKey));
+            } else if (!splitPointTree.containsValue(entry.getValue()) && headCommitTree.containsValue(entry.getValue()) && !headCommitTree.containsKey(entry.getKey())) {
+                Utils.writeContents(Utils.join(CWD, currentName), conflictFileContents(headKey, branchKey));
             }
         }
 
