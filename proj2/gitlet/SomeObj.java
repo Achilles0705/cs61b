@@ -211,7 +211,7 @@ public class SomeObj {
             Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
             Utils.writeContents(Utils.join(CWD, currentBlob.getName()), (Object) currentBlob.getContent());
         }
-        Branch.setCommitId(HEAD.getBranchName(), commitId);
+        //Branch.setCommitId(HEAD.getBranchName(), commitId);
     }
 
     public void checkoutBranch(String branchName) {
@@ -297,7 +297,7 @@ public class SomeObj {
         }
         List<String> branchNameList = Utils.plainFilenamesIn(BRANCH_DIR);
         if (!branchNameList.contains(branchName)) {
-            Utils.exitWithMessage("No such branch exists.");
+            Utils.exitWithMessage("A branch with that name does not exist.");
         }
         if (Objects.equals(branchName, HEAD.getBranchName())) {
             Utils.exitWithMessage("Cannot merge a branch with itself.");
@@ -349,6 +349,7 @@ public class SomeObj {
                     checkoutCommit_File(branchCommit.getSHA1(), currentName);
                 } else if (!branchCommitTree.containsValue(currentName)) { //not present in other--6
                     rm(currentName);
+                    //skipFiles.add(currentName);
                 }
             } else if (branchCommitTree.containsKey(currentKey)) {   //unmodified in other
                 if (headCommitTree.containsValue(currentName) && !headCommitTree.containsKey(currentKey)) {
