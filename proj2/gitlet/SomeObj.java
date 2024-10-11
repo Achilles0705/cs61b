@@ -235,7 +235,8 @@ public class SomeObj {
         String headCommitId = Branch.getCommitId(HEAD.getBranchName());
         Commit headCommit = Commit.load(headCommitId);
         for (String fileName : fileList) {  //如果CWD中有，但headCommit和addStage都没有
-            if (!headCommit.getBlobTree().containsValue(fileName) && !stagingArea.getAddStage().containsValue(fileName)) {
+            if (!headCommit.getBlobTree().containsValue(fileName) && !stagingArea.getAddStage().containsValue(fileName)
+                && commit.getBlobTree().containsValue(fileName)) {
                 Utils.exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
             }
         }
@@ -282,23 +283,7 @@ public class SomeObj {
             Utils.exitWithMessage("No commit with that id exists.");
         }
         checkoutCommit(commit);
-        /*String targetBranch = null;
-        List<String> branchList = Utils.plainFilenamesIn(BRANCH_DIR);
-        outerLoop:
-        while(commit.getParent1() != null) {   //从commitId找到对应的Branch
-            for (String branchName : branchList) {
-                String branchCommitId = Utils.readContentsAsString(Utils.join(BRANCH_DIR, branchName));
-                if (Objects.equals(branchCommitId, commit.getSHA1())) {
-                    targetBranch = branchName;
-                    break outerLoop;
-                }
-            }
-            commit = Commit.load(commit.getParent1());
-        }*/
-        //checkoutBranch(targetBranch);
         Branch.setCommitId(HEAD.getBranchName(), commitId);
-        //System.out.println("targetBranch = " + targetBranch);
-        //checkoutBranch(targetBranch);
     }
 
     public boolean isConflict = false;
