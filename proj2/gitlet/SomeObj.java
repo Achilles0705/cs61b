@@ -281,8 +281,8 @@ public class SomeObj {
         if (Commit.load(commitId) == null) {
             Utils.exitWithMessage("No commit with that id exists.");
         }
-        //checkoutCommit(commit);
-        String targetBranch = null;
+        checkoutCommit(commit);
+        /*String targetBranch = null;
         List<String> branchList = Utils.plainFilenamesIn(BRANCH_DIR);
         outerLoop:
         while(commit.getParent1() != null) {   //从commitId找到对应的Branch
@@ -294,10 +294,11 @@ public class SomeObj {
                 }
             }
             commit = Commit.load(commit.getParent1());
-        }
+        }*/
         //checkoutBranch(targetBranch);
         Branch.setCommitId(HEAD.getBranchName(), commitId);
-        checkoutBranch(targetBranch);
+        //System.out.println("targetBranch = " + targetBranch);
+        //checkoutBranch(targetBranch);
     }
 
     public boolean isConflict = false;
