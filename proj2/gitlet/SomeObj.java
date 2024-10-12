@@ -308,6 +308,15 @@ public class SomeObj {
         String branchCommitId = Branch.getCommitId(branchName);
         String splitPointCommitId = merge_findAncestor(headCommitId, branchCommitId);
 
+        if (Objects.equals(splitPointCommitId, branchCommitId)) {
+            Utils.exitWithMessage("Given branch is an ancestor of the current branch.");
+        }
+        if (Objects.equals(splitPointCommitId, headCommitId)) {
+            checkoutCommit(Commit.load(branchCommitId));
+            Branch.setCommitId(HEAD.getBranchName(), branchCommitId);
+            Utils.exitWithMessage("Current branch fast-forwarded.");
+        }
+
         merge_splitPointCheck(Commit.load(headCommitId), Commit.load(branchCommitId), Commit.load(splitPointCommitId));
         merge_notSplitPointCheck(Commit.load(headCommitId), Commit.load(branchCommitId), Commit.load(splitPointCommitId));
 
