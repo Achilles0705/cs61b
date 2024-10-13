@@ -372,7 +372,7 @@ public class SomeObj {
         for (String fileName : fileList2) {  //如果CWD中有，但headCommit和addStage都没有
             boolean isNotInHead = !headCommit.getBlobTree().containsValue(fileName);
             boolean isNotInAddStage = !currentStage.getAddStage().containsValue(fileName);
-            if (isNotInHead && !isNotInAddStage) {
+            if (isNotInHead && isNotInAddStage) {
                 Utils.exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
             }
         }
