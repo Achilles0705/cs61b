@@ -302,6 +302,14 @@ public class SomeObj {
         if (Objects.equals(branchName, HEAD.getBranchName())) {
             Utils.exitWithMessage("Cannot merge a branch with itself.");
         }
+        List<String> fileList2 = Utils.plainFilenamesIn(CWD);
+        Commit headCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
+        for (String fileName : fileList2) {  //如果CWD中有，但headCommit和addStage都没有
+            //System.out.println("current file name : " + fileName);
+            if (!headCommit.getBlobTree().containsValue(fileName) && !currentStage.getAddStage().containsValue(fileName)) {
+                Utils.exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
+            }
+        }
 
         String newMessage = null;
         String headCommitId = Branch.getCommitId(HEAD.getBranchName()); //CWD中是headCommit的文件
