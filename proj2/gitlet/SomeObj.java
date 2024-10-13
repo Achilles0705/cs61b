@@ -171,6 +171,7 @@ public class SomeObj {
         Collections.sort(branchNameList);
         List<String> sortedAddStageName = sortMapNames(addStageName);
         List<String> sortedRemoveStageName = sortSetNames(removeStageName);
+        Commit headCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
 
         System.out.println("=== Branches ===");
         for (String branchName : branchNameList) {
@@ -188,7 +189,69 @@ public class SomeObj {
             System.out.println(StageName);
         }
         System.out.println("\n=== Modifications Not Staged For Commit ===");
+
+
+
+        TreeSet<String> Modification_nameToPrint = new TreeSet<>();
+        for (Map.Entry<String, String> entry : headCommit.getBlobTree().entrySet()) {
+
+            String fileName = entry.getValue();
+            String commitBlobHash = entry.getKey();
+            StagingArea currentStage = StagingArea.load();
+
+            boolean isExist = Utils.join(CWD, fileName).exists();
+            boolean isNotExist = !Utils.join(CWD, fileName).exists();
+            boolean isNotInRemoveStage = !removeStageName.contains(fileName);
+            boolean isInAddStage = addStageName.containsValue(fileName);
+            boolean differentInCommit = false;
+            boolean differentInAddStage = false;
+
+            if (isExist) {
+                String currentFileHash = Utils.sha1(Utils.readContents(Utils.join(CWD, fileName)));
+                if (!commitBlobHash.equals(currentFileHash)) {
+                    differentInCommit = true; // 文件内容与提交时不同
+                }
+            }
+
+            if (isInAddStage) {
+                String addStageFileHash = currentStage.getAddStage().get(fileName);
+                String currentFileHash = Utils.sha1(Utils.readContents(Utils.join(CWD, fileName)));
+                if (!addStageFileHash.equals(currentFileHash)) {
+                    differentInAddStage = true; // 暂存区的内容与工作目录内容不同
+                }
+            }
+
+            if (isNotExist && (isNotInRemoveStage || isInAddStage)) {
+                Modification_nameToPrint.add(fileName + " (deleted)");
+            }
+
+            if (isExist && (differentInCommit || differentInAddStage)) {
+                Modification_nameToPrint.add(fileName + " (modified)");
+            }
+
+
+        }
+        for (String name : Modification_nameToPrint) {
+            System.out.println(name);
+        }
+
+
+
         System.out.println("\n=== Untracked Files ===");
+        List<String> fileList2 = Utils.plainFilenamesIn(CWD);
+        TreeSet<String> Untracked_nameToPrint = new TreeSet<>();
+        for (String fileName : fileList2) {
+            boolean isNotInHead = !headCommit.getBlobTree().containsValue(fileName);
+            boolean isNotInAddStage = !addStageName.containsValue(fileName);
+            boolean isInRemoveStage = removeStageName.contains(fileName);  // 检查是否在RemoveStage中
+            // 文件未被追踪，且未暂存，或者文件已经被标记为删除但重新出现
+            if ((isNotInHead && isNotInAddStage) || isInRemoveStage) {
+                Untracked_nameToPrint.add(fileName);
+            }
+        }
+        for (String name : Untracked_nameToPrint) {
+            System.out.println(name);
+        }
         //最后两部分（未暂存的修改和未跟踪的文件）是额外加分，价值 32 分。请随意将它们留空（只留下标题）。
 
     }
@@ -235,8 +298,10 @@ public class SomeObj {
         String headCommitId = Branch.getCommitId(HEAD.getBranchName());
         Commit headCommit = Commit.load(headCommitId);
         for (String fileName : fileList) {  //如果CWD中有，但headCommit和addStage都没有
-            if (!headCommit.getBlobTree().containsValue(fileName) && !stagingArea.getAddStage().containsValue(fileName)
-                && commit.getBlobTree().containsValue(fileName)) {
+            boolean isNotInHead = !headCommit.getBlobTree().containsValue(fileName);
+            boolean isNotInAddStage = !stagingArea.getAddStage().containsValue(fileName);
+            boolean isInCurrentCommit = commit.getBlobTree().containsValue(fileName);
+            if (isNotInHead && isNotInAddStage && isInCurrentCommit) {
                 Utils.exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
             }
         }
@@ -305,8 +370,9 @@ public class SomeObj {
         List<String> fileList2 = Utils.plainFilenamesIn(CWD);
         Commit headCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
         for (String fileName : fileList2) {  //如果CWD中有，但headCommit和addStage都没有
-            //System.out.println("current file name : " + fileName);
-            if (!headCommit.getBlobTree().containsValue(fileName) && !currentStage.getAddStage().containsValue(fileName)) {
+            boolean isNotInHead = !headCommit.getBlobTree().containsValue(fileName);
+            boolean isNotInAddStage = !currentStage.getAddStage().containsValue(fileName);
+            if (isNotInHead && !isNotInAddStage) {
                 Utils.exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
             }
         }
