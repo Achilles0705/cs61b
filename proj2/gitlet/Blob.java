@@ -15,6 +15,12 @@ public class Blob implements Serializable {
         this.contents = getContents();
     }
 
+    public Blob(String remotePath, String name, String SHA1) {
+        this.name = name;
+        File remoteBlob = Utils.join(remotePath + "/objects", SHA1);
+        this.contents = Utils.readContents(remoteBlob);
+    }
+
     public String getSHA1() {
         return Utils.sha1(this.name, this.contents);
     }
@@ -34,6 +40,15 @@ public class Blob implements Serializable {
 
     public void save() {    //所有的文件都会存在Objects.dir中不会被改变，改变的只有CWD中的文件
         Utils.writeObject(Utils.join(OBJECTS_DIR, this.getSHA1()), this);
+    }
+
+    public void saveOnRemotePath(String remotePath) {
+        File objectsDir = Utils.join(remotePath, "/objects");
+        if (!objectsDir.exists()) {
+            objectsDir.mkdirs();  // 创建目录
+        }
+        File file = Utils.join(objectsDir, this.getSHA1());
+        Utils.writeObject(file, this);
     }
 
 }

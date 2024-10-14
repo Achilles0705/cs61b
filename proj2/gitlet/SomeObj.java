@@ -180,91 +180,59 @@ public class SomeObj {
             }
             System.out.println(branchName);
         }
+
         System.out.println("\n=== Staged Files ===");
         for (String StageName : sortedAddStageName) {
             System.out.println(StageName);
         }
+
         System.out.println("\n=== Removed Files ===");
         for (String StageName : sortedRemoveStageName) {
             System.out.println(StageName);
         }
-        System.out.println("\n=== Modifications Not Staged For Commit ===");
 
+        System.out.println("\n=== Modifications Not Staged For Commit ===");
         TreeSet<String> Modification_nameToPrint = new TreeSet<>();
         List<String> fileNameInCWD = Utils.plainFilenamesIn(CWD);
         for (String fileName : fileNameInCWD) {
-
             String currentFileHash = Utils.sha1(fileName, Utils.readContents(Utils.join(CWD, fileName)));
             String commitBlobHash = valueToKey(headCommit.getBlobTree(), fileName);
             String addStageFileHash = valueToKey(addStage, fileName);
-
             boolean isExist = Utils.join(CWD, fileName).exists();
             boolean isInAddStage = addStage.containsValue(fileName);
             boolean isInCommit = headCommit.getBlobTree().containsValue(fileName);
             boolean differentInCommit = false;
             boolean differentInAddStage = false;
-
             if (isExist && isInCommit) {
                 if (!Objects.equals(currentFileHash, commitBlobHash)) {
                     differentInCommit = true; // 文件内容与提交时不同
                 }
             }
-
             if (isExist && isInAddStage) {
                 if (!Objects.equals(addStageFileHash, currentFileHash)) {
                     differentInAddStage = true; // 暂存区的内容与工作目录内容不同
                 }
             }
-
             if (isExist && (differentInCommit || differentInAddStage)) {
                 Modification_nameToPrint.add(fileName + " (modified)");
             }
 
         }
-
-
-
         for (Map.Entry<String, String> entry : headCommit.getBlobTree().entrySet()) {
 
             String fileName = entry.getValue();
-            //String commitBlobHash = entry.getKey();
-            //String currentFileHash = Utils.sha1(fileName, Utils.readContents(Utils.join(CWD, fileName)));
-
             boolean isExist = Utils.join(CWD, fileName).exists();
             boolean isNotExist = !Utils.join(CWD, fileName).exists();
             boolean isNotInRemoveStage = !removeStage.contains(fileName);
             boolean isInAddStage = addStage.containsValue(fileName);
-            //boolean differentInCommit = false;
-            //boolean differentInAddStage = false;
-
-            /*if (isExist) {
-                if (!Objects.equals(currentFileHash, commitBlobHash)) {
-                    differentInCommit = true; // 文件内容与提交时不同
-                }
-            }
-
-            if (isExist && isInAddStage) {
-                String addStageFileHash = valueToKey(addStage, fileName);
-                if (!Objects.equals(addStageFileHash, currentFileHash)) {
-                    differentInAddStage = true; // 暂存区的内容与工作目录内容不同
-                }
-            }*/
-
             if (isNotExist && (isNotInRemoveStage || isInAddStage)) {
                 Modification_nameToPrint.add(fileName + " (deleted)");
             }
-
-            /*if (isExist && (differentInCommit || differentInAddStage)) {
-                Modification_nameToPrint.add(fileName + " (modified)");
-            }*/
-
 
         }
         for (String name : Modification_nameToPrint) {
             System.out.println(name);
         }
-
-
 
         System.out.println("\n=== Untracked Files ===");
         List<String> fileList2 = Utils.plainFilenamesIn(CWD);
@@ -297,7 +265,6 @@ public class SomeObj {
         if (!targetCommit.getBlobTree().containsValue(fileName)) { //目标commit里没有
             Utils.exitWithMessage("File does not exist in that commit.");
         } else {
-            //Utils.restrictedDelete(Utils.join(CWD, fileName));  //CWD中有的话就删了再加，没有的话这条忽略
             String fileSHA1 = valueToKey(targetCommit.getBlobTree(), fileName);
 
             Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
@@ -432,14 +399,8 @@ public class SomeObj {
         newMessage = "Merged " + branchName + " into " + HEAD.getBranchName() + ".";
         mergeCommit(newMessage, headCommitId, branchCommitId);
         if (isConflict) {
-            //checkoutCommit(Commit.load(headCommitId));
             Utils.exitWithMessage("Encountered a merge conflict.");
-        } //else {
-            //newMessage = "Merged " + branchName + " into " + HEAD.getBranchName() + ".";
-            //Commit newCommit = new Commit(newMessage, headCommitId, branchCommitId);
-            //newCommit.save();
-            //commit(newMessage);
-        //}
+        }
 
     }
 
@@ -461,7 +422,6 @@ public class SomeObj {
                     checkoutCommit_File(branchCommit.getSHA1(), currentName);
                 } else if (!branchCommitTree.containsValue(currentName)) { //not present in other--6
                     rm(currentName);
-                    //skipFiles.add(currentName);
                 }
             } else if (branchCommitTree.containsKey(currentKey)) {   //unmodified in other
                 if (headCommitTree.containsValue(currentName) && !headCommitTree.containsKey(currentKey)) {
@@ -559,6 +519,105 @@ public class SomeObj {
         }
         return null;
 
+    }
+
+    public void addRemote(String remoteName, String remotePath) {
+        if (Remote.getRemotePath(remoteName) != null) {
+            Utils.exitWithMessage("A remote with that name already exists.");
+        }
+        remotePath = remotePath.replace("/", File.separator);
+        Remote.addRemotePath(remoteName, remotePath);
+    }
+
+    public void rmRemote(String remoteName) {
+        if (Remote.getRemotePath(remoteName) == null) {
+            Utils.exitWithMessage("A remote with that name does not exist.");
+        }
+        Remote.removeRemotePath(remoteName);
+    }
+
+    public void push(String remoteName, String remoteBranchName) {
+
+        String remoteGitPath = Remote.getRemotePath(remoteName);
+        if (remoteGitPath == null) {
+            Utils.exitWithMessage("Remote directory not found.");
+        }
+        String localBranchName = HEAD.getBranchName();
+        List<String> commitHistory = new ArrayList<>();
+        String localCommitId = Branch.getCommitId(localBranchName);
+        String remoteCommitId = Branch.getRemoteCommitId(remoteGitPath, remoteBranchName);
+        //Branch.setRemoteCommitId(remoteGitPath, remoteBranchName, localCommitId);
+
+        boolean isHistory = false;
+        while (localCommitId != null) {
+            Commit commit = Commit.load(localCommitId);
+            commitHistory.add(localCommitId);
+            if (Objects.equals(localCommitId, remoteCommitId)) {
+                isHistory = true;
+                break;
+            }
+            localCommitId = commit.getParent1();
+        }
+        if (!isHistory) {
+            Utils.exitWithMessage("Please pull down remote changes before pushing.");
+        }
+        Branch.setRemoteCommitId(remoteGitPath, remoteBranchName, localCommitId);
+
+        for (String commitId : commitHistory) {
+            Commit commit = Commit.load(commitId);
+            for (Map.Entry<String, String> entry : commit.getBlobTree().entrySet()) {
+                Blob newBlob = new Blob(remoteGitPath, entry.getValue(), entry.getKey());
+                newBlob.saveOnRemotePath(remoteGitPath);
+            }
+            commit.saveOnRemotePath(remoteGitPath);
+        }
+
+    }
+
+    public void fetch(String remoteName, String remoteBranchName) {
+
+        String remoteGitPath = Remote.getRemotePath(remoteName);
+        if (remoteGitPath == null) {
+            Utils.exitWithMessage("Remote directory not found.");
+        }
+        if (Branch.getRemoteCommitId(remoteGitPath, remoteBranchName) == null) {
+            Utils.exitWithMessage("That remote does not have that branch.");
+        }
+
+        String localBranchName = remoteName + "/" + remoteBranchName;
+        localBranchName = localBranchName.replace("/", File.separator);
+
+        String remoteCommitId = Branch.getRemoteCommitId(remoteGitPath, remoteBranchName);
+        String localCommitId = Branch.getCommitId(localBranchName);
+        List<String> remoteCommitHistory = new ArrayList<>();
+        HEAD.setBranchName(localBranchName);
+        Branch.setCommitId(localBranchName, remoteCommitId);
+
+        while (remoteCommitId != null) {
+            Commit commit = Commit.load(remoteCommitId);
+            remoteCommitHistory.add(remoteCommitId);
+            if (Objects.equals(localCommitId, remoteCommitId)) {
+                break;
+            }
+            remoteCommitId = commit.getParent1();
+        }
+
+        for (String commitId : remoteCommitHistory) {
+            Commit commit = Commit.remoteLoad(remoteGitPath, commitId);
+            for (Map.Entry<String, String> entry : commit.getBlobTree().entrySet()) {
+                Blob newBlob = new Blob(remoteGitPath, entry.getValue(), entry.getKey());
+                newBlob.save();
+            }
+            commit.save();
+        }
+
+    }
+
+    public void pull(String remoteName, String remoteBranchName) {
+        fetch(remoteName, remoteBranchName);
+        String localBranchName = remoteName + "/" + remoteBranchName;
+        localBranchName = localBranchName.replace("/", File.separator);
+        merge(localBranchName);
     }
 
     private List<String> sortMapNames(TreeMap<String, String> map) {

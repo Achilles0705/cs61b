@@ -87,6 +87,24 @@ public class Commit implements Serializable {
         return Utils.readObject(f, Commit.class);
     }
 
+    public static Commit remoteLoad(String remoteGitPath, String remoteCommitId) {
+        File branchFile = Utils.join(remoteGitPath + "/commits");
+        if (remoteCommitId.length() < 40) {
+            List<String> commitIdList = Utils.plainFilenamesIn(branchFile);
+            for (String Id : commitIdList) {
+                if (Id.startsWith(remoteCommitId)) {
+                    remoteCommitId = Id;
+                    break;
+                }
+            }
+        }
+        File f = Utils.join(branchFile, remoteCommitId);
+        if (!f.exists()) {
+            return null;
+        }
+        return Utils.readObject(f, Commit.class);
+    }
+
     private String getDate() {
         if (this.timestamp == null) {
             return generateTimestamp();
@@ -126,6 +144,15 @@ public class Commit implements Serializable {
 
     public void save() {
         Utils.writeObject(Utils.join(COMMITS_DIR, this.getSHA1()), this);
+    }
+
+    public void saveOnRemotePath(String remotePath) {
+        File commitsDir = Utils.join(remotePath, "/commits");
+        if (!commitsDir.exists()) {
+            commitsDir.mkdirs();  // 创建目录
+        }
+        File file = Utils.join(commitsDir, this.getSHA1());
+        Utils.writeObject(file, this);
     }
 
     public String getSHA1() {

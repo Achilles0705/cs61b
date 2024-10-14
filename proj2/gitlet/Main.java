@@ -1,10 +1,6 @@
 package gitlet;
 
-import java.io.File;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
-
 import static gitlet.Repository.*;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
@@ -101,14 +97,26 @@ public class Main {
                 checkArgsNum(args, 2);
                 bloop.merge(args[1]);
                 break;
-            case "head":
-                System.out.println(Branch.getCommitId(HEAD.getBranchName()));
-                break;
-            case "printBlob":
-                Commit currentCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
-                TreeMap<String, String> currentCommitBlobTree = currentCommit.getBlobTree();
-                System.out.println(currentCommitBlobTree);
-                break;
+            case "add-remote":
+                checkCWD();
+                checkArgsNum(args, 3);
+                bloop.addRemote(args[1], args[2]);
+            case "rm-remote":
+                checkCWD();
+                checkArgsNum(args, 2);
+                bloop.rmRemote(args[1]);
+            case "push":
+                checkCWD();
+                checkArgsNum(args, 3);
+                bloop.push(args[1], args[2]);
+            case "fetch":
+                checkCWD();
+                checkArgsNum(args, 3);
+                bloop.fetch(args[1], args[2]);
+            case "pull":
+                checkCWD();
+                checkArgsNum(args, 3);
+                bloop.pull(args[1], args[2]);
             default:
                 System.out.println("No command with that name exists.");
                 System.exit(0);

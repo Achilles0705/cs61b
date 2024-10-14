@@ -2,14 +2,9 @@ package gitlet;
 
 import java.util.*;
 import java.io.Serializable;
-import java.io.File;
-
 import static gitlet.Repository.*;
 
 public class StagingArea implements Serializable {
-
-    //public static HashSet<String> removeStage = new HashSet<>();
-    //public static HashMap<String, String> addStage = new HashMap<>();
 
     private TreeSet<String> removeStage;
     private TreeMap<String, String> addStage;   //key是SHA1值，value是名字，通过SHA1找名字
