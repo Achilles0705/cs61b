@@ -164,13 +164,13 @@ public class SomeObj {
 
     public void status() {  //两种思路 1.把branch换成像lab8一样的列表嵌套链表 2.通过HEAD往parent找，直至找到 3.重构branch
         //较难
-        TreeMap<String, String> addStageName = StagingArea.load().getAddStage();
-        TreeSet<String> removeStageName = StagingArea.load().getRemoveStage();
+        TreeMap<String, String> addStage = StagingArea.load().getAddStage();
+        TreeSet<String> removeStage = StagingArea.load().getRemoveStage();
         List<String> branchNameList = Utils.plainFilenamesIn(BRANCH_DIR);   //branch重构了
 
         Collections.sort(branchNameList);
-        List<String> sortedAddStageName = sortMapNames(addStageName);
-        List<String> sortedRemoveStageName = sortSetNames(removeStageName);
+        List<String> sortedAddStageName = sortMapNames(addStage);
+        List<String> sortedRemoveStageName = sortSetNames(removeStage);
         Commit headCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
 
         System.out.println("=== Branches ===");
@@ -190,44 +190,73 @@ public class SomeObj {
         }
         System.out.println("\n=== Modifications Not Staged For Commit ===");
 
-
-
         TreeSet<String> Modification_nameToPrint = new TreeSet<>();
-        for (Map.Entry<String, String> entry : headCommit.getBlobTree().entrySet()) {
+        List<String> fileNameInCWD = Utils.plainFilenamesIn(CWD);
+        for (String fileName : fileNameInCWD) {
 
-            String fileName = entry.getValue();
-            String commitBlobHash = entry.getKey();
-            StagingArea currentStage = StagingArea.load();
+            String currentFileHash = Utils.sha1(fileName, Utils.readContents(Utils.join(CWD, fileName)));
+            String commitBlobHash = valueToKey(headCommit.getBlobTree(), fileName);
+            String addStageFileHash = valueToKey(addStage, fileName);
 
             boolean isExist = Utils.join(CWD, fileName).exists();
-            boolean isNotExist = !Utils.join(CWD, fileName).exists();
-            boolean isNotInRemoveStage = !removeStageName.contains(fileName);
-            boolean isInAddStage = addStageName.containsValue(fileName);
+            boolean isInAddStage = addStage.containsValue(fileName);
+            boolean isInCommit = headCommit.getBlobTree().containsValue(fileName);
             boolean differentInCommit = false;
             boolean differentInAddStage = false;
 
-            if (isExist) {
-                String currentFileHash = Utils.sha1(Utils.readContents(Utils.join(CWD, fileName)));
-                if (!commitBlobHash.equals(currentFileHash)) {
+            if (isExist && isInCommit) {
+                if (!Objects.equals(currentFileHash, commitBlobHash)) {
                     differentInCommit = true; // 文件内容与提交时不同
                 }
             }
 
-            if (isInAddStage) {
-                String addStageFileHash = currentStage.getAddStage().get(fileName);
-                String currentFileHash = Utils.sha1(Utils.readContents(Utils.join(CWD, fileName)));
-                if (!addStageFileHash.equals(currentFileHash)) {
+            if (isExist && isInAddStage) {
+                if (!Objects.equals(addStageFileHash, currentFileHash)) {
                     differentInAddStage = true; // 暂存区的内容与工作目录内容不同
                 }
-            }
-
-            if (isNotExist && (isNotInRemoveStage || isInAddStage)) {
-                Modification_nameToPrint.add(fileName + " (deleted)");
             }
 
             if (isExist && (differentInCommit || differentInAddStage)) {
                 Modification_nameToPrint.add(fileName + " (modified)");
             }
+
+        }
+
+
+
+        for (Map.Entry<String, String> entry : headCommit.getBlobTree().entrySet()) {
+
+            String fileName = entry.getValue();
+            //String commitBlobHash = entry.getKey();
+            //String currentFileHash = Utils.sha1(fileName, Utils.readContents(Utils.join(CWD, fileName)));
+
+            boolean isExist = Utils.join(CWD, fileName).exists();
+            boolean isNotExist = !Utils.join(CWD, fileName).exists();
+            boolean isNotInRemoveStage = !removeStage.contains(fileName);
+            boolean isInAddStage = addStage.containsValue(fileName);
+            //boolean differentInCommit = false;
+            //boolean differentInAddStage = false;
+
+            /*if (isExist) {
+                if (!Objects.equals(currentFileHash, commitBlobHash)) {
+                    differentInCommit = true; // 文件内容与提交时不同
+                }
+            }
+
+            if (isExist && isInAddStage) {
+                String addStageFileHash = valueToKey(addStage, fileName);
+                if (!Objects.equals(addStageFileHash, currentFileHash)) {
+                    differentInAddStage = true; // 暂存区的内容与工作目录内容不同
+                }
+            }*/
+
+            if (isNotExist && (isNotInRemoveStage || isInAddStage)) {
+                Modification_nameToPrint.add(fileName + " (deleted)");
+            }
+
+            /*if (isExist && (differentInCommit || differentInAddStage)) {
+                Modification_nameToPrint.add(fileName + " (modified)");
+            }*/
 
 
         }
@@ -242,8 +271,8 @@ public class SomeObj {
         TreeSet<String> Untracked_nameToPrint = new TreeSet<>();
         for (String fileName : fileList2) {
             boolean isNotInHead = !headCommit.getBlobTree().containsValue(fileName);
-            boolean isNotInAddStage = !addStageName.containsValue(fileName);
-            boolean isInRemoveStage = removeStageName.contains(fileName);  // 检查是否在RemoveStage中
+            boolean isNotInAddStage = !addStage.containsValue(fileName);
+            boolean isInRemoveStage = removeStage.contains(fileName);  // 检查是否在RemoveStage中
             // 文件未被追踪，且未暂存，或者文件已经被标记为删除但重新出现
             if ((isNotInHead && isNotInAddStage) || isInRemoveStage) {
                 Untracked_nameToPrint.add(fileName);
