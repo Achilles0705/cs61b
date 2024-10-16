@@ -1,6 +1,7 @@
 package gitlet;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static gitlet.Repository.*;
@@ -97,7 +98,13 @@ public class SomeObj {
     }
 
     public void log() { //merge情况已处理
-        Commit currentCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
+        Commit currentCommit = null;
+        if (HEAD.getBranchName().contains("/")) {   //重构log中的HEAD
+            File branchFile = remote_branchNameToBranchFile(HEAD.getBranchName());
+            currentCommit = Commit.load(Utils.readContentsAsString(branchFile));
+        } else {
+            currentCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
+        }
         while (currentCommit.getParent1() != null) {
             if (currentCommit.getParent2() == null) {
                 System.out.println("===\n" +
@@ -276,6 +283,17 @@ public class SomeObj {
     public void checkoutBranch(String branchName) {
         //该功能需要到目标branch的最新commit，感觉HEAD需要重构一下
         //找到目标commit，把blobTree里的嘎嘎往CWD里加就完事了
+        if (branchName.contains("/")) {
+            File branchFile = remote_branchNameToBranchFile(branchName);
+
+            // 读取远程分支的 commit ID
+            String commitId = Utils.readContentsAsString(branchFile);
+            Commit branchCommit = Commit.load(commitId);
+            // 现在需要根据 commitId 更新工作区和索引
+            checkoutCommit(branchCommit);
+            HEAD.setBranchName(branchName);
+            return;
+        }
         if (Objects.equals(branchName, HEAD.getBranchName())) {
             Utils.exitWithMessage("No need to checkout the current branch.");
         }
@@ -352,17 +370,47 @@ public class SomeObj {
 
     public void merge(String branchName) {  //最难
 
+
         StagingArea currentStage = StagingArea.load();
-        if (!currentStage.getAddStage().isEmpty() || !currentStage.getRemoveStage().isEmpty()) {
-            Utils.exitWithMessage("You have uncommitted changes.");
+        String branchCommitId = null;
+
+        if (branchName.contains("/")) {   //重构log中的HEAD
+
+
+            //StagingArea currentStage = StagingArea.load();
+            if (!currentStage.getAddStage().isEmpty() || !currentStage.getRemoveStage().isEmpty()) {
+                Utils.exitWithMessage("You have uncommitted changes.");
+            }
+            File branchFile = remote_branchNameToBranchFile(branchName);
+            Commit remoteBranchCommit = Commit.load(Utils.readContentsAsString(branchFile));
+            if (remoteBranchCommit == null) {
+                Utils.exitWithMessage("A branch with that name does not exist.");
+            }
+            if (Objects.equals(branchName, HEAD.getBranchName())) {
+                Utils.exitWithMessage("Cannot merge a branch with itself.");
+            }
+            branchCommitId = remoteBranchCommit.getSHA1();
+
+
+        } else {
+
+
+            //StagingArea currentStage = StagingArea.load();
+            if (!currentStage.getAddStage().isEmpty() || !currentStage.getRemoveStage().isEmpty()) {
+                Utils.exitWithMessage("You have uncommitted changes.");
+            }
+            List<String> branchNameList = Utils.plainFilenamesIn(BRANCH_DIR);
+            if (!branchNameList.contains(branchName)) {
+                Utils.exitWithMessage("A branch with that name does not exist.");
+            }
+            if (Objects.equals(branchName, HEAD.getBranchName())) {
+                Utils.exitWithMessage("Cannot merge a branch with itself.");
+            }
+            branchCommitId = Branch.getCommitId(branchName);
+
         }
-        List<String> branchNameList = Utils.plainFilenamesIn(BRANCH_DIR);
-        if (!branchNameList.contains(branchName)) {
-            Utils.exitWithMessage("A branch with that name does not exist.");
-        }
-        if (Objects.equals(branchName, HEAD.getBranchName())) {
-            Utils.exitWithMessage("Cannot merge a branch with itself.");
-        }
+
+
         List<String> fileList2 = Utils.plainFilenamesIn(CWD);
         Commit headCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
         for (String fileName : fileList2) {  //如果CWD中有，但headCommit和addStage都没有
@@ -375,7 +423,7 @@ public class SomeObj {
 
         String newMessage = null;
         String headCommitId = Branch.getCommitId(HEAD.getBranchName()); //CWD中是headCommit的文件
-        String branchCommitId = Branch.getCommitId(branchName);
+        //String branchCommitId = Branch.getCommitId(branchName);
         String splitPointCommitId = merge_findAncestor(headCommitId, branchCommitId);
 
         if (Objects.equals(splitPointCommitId, branchCommitId)) {
@@ -522,6 +570,7 @@ public class SomeObj {
     }
 
     public void addRemote(String remoteName, String remotePath) {
+        ensureRemoteDirExists();
         if (Remote.getRemotePath(remoteName) != null) {
             Utils.exitWithMessage("A remote with that name already exists.");
         }
@@ -530,26 +579,35 @@ public class SomeObj {
     }
 
     public void rmRemote(String remoteName) {
+        ensureRemoteDirExists();
         if (Remote.getRemotePath(remoteName) == null) {
             Utils.exitWithMessage("A remote with that name does not exist.");
         }
         Remote.removeRemotePath(remoteName);
     }
 
-    public void push(String remoteName, String remoteBranchName) {
+    public void push(String remoteName, String remoteBranchName) throws IOException {
 
+        ensureRemoteDirExists();
         String remoteGitPath = Remote.getRemotePath(remoteName);
-        if (remoteGitPath == null) {
+
+
+        File remoteFolder = new File(remoteGitPath);
+
+        if (!remoteFolder.exists()) {
+            //if (remoteGitPath == null) {
             Utils.exitWithMessage("Remote directory not found.");
         }
         String localBranchName = HEAD.getBranchName();
         List<String> commitHistory = new ArrayList<>();
         String localCommitId = Branch.getCommitId(localBranchName);
         String remoteCommitId = Branch.getRemoteCommitId(remoteGitPath, remoteBranchName);
+        //System.out.println("local commit id : " + localCommitId);
+        //System.out.println("remote commit id : " + remoteCommitId);
         //Branch.setRemoteCommitId(remoteGitPath, remoteBranchName, localCommitId);
 
         boolean isHistory = false;
-        while (localCommitId != null) {
+        /*while (localCommitId != null) {
             Commit commit = Commit.load(localCommitId);
             commitHistory.add(localCommitId);
             if (Objects.equals(localCommitId, remoteCommitId)) {
@@ -557,27 +615,46 @@ public class SomeObj {
                 break;
             }
             localCommitId = commit.getParent1();
+        }*/
+
+        Commit commit = Commit.load(localCommitId);
+        while (commit.getParent1() != null) {
+            commitHistory.add(commit.getSHA1());
+            if (Objects.equals(commit.getSHA1(), remoteCommitId)) {
+                isHistory = true;
+                break;
+            }
+            commit = Commit.load(commit.getParent1());
         }
+
         if (!isHistory) {
             Utils.exitWithMessage("Please pull down remote changes before pushing.");
         }
-        Branch.setRemoteCommitId(remoteGitPath, remoteBranchName, localCommitId);
+        //Branch.setRemoteCommitId(remoteGitPath, remoteBranchName, localCommitId);
 
         for (String commitId : commitHistory) {
-            Commit commit = Commit.load(commitId);
+            commit = Commit.load(commitId);
             for (Map.Entry<String, String> entry : commit.getBlobTree().entrySet()) {
-                Blob newBlob = new Blob(remoteGitPath, entry.getValue(), entry.getKey());
+                //Blob newBlob = new Blob(remoteGitPath, entry.getValue(), entry.getKey());
+                Blob newBlob = new Blob(entry.getValue());
                 newBlob.saveOnRemotePath(remoteGitPath);
             }
             commit.saveOnRemotePath(remoteGitPath);
         }
 
+        Branch.setRemoteCommitId(remoteGitPath, remoteBranchName, localCommitId);
+
     }
 
-    public void fetch(String remoteName, String remoteBranchName) {
+    public void fetch(String remoteName, String remoteBranchName) throws IOException {
 
+        ensureRemoteDirExists();
         String remoteGitPath = Remote.getRemotePath(remoteName);
-        if (remoteGitPath == null) {
+
+        File remoteFolder = new File(remoteGitPath);
+
+        if (!remoteFolder.exists()) {
+        //if (remoteGitPath == null) {
             Utils.exitWithMessage("Remote directory not found.");
         }
         if (Branch.getRemoteCommitId(remoteGitPath, remoteBranchName) == null) {
@@ -590,33 +667,52 @@ public class SomeObj {
         String remoteCommitId = Branch.getRemoteCommitId(remoteGitPath, remoteBranchName);
         String localCommitId = Branch.getCommitId(localBranchName);
         List<String> remoteCommitHistory = new ArrayList<>();
-        HEAD.setBranchName(localBranchName);
-        Branch.setCommitId(localBranchName, remoteCommitId);
+        //HEAD.setBranchName(localBranchName);
+        //Branch.setCommitId(localBranchName, remoteCommitId);
+        //Branch.setCommitId2(remoteName, remoteBranchName, remoteCommitId);
+        //System.out.println("remote git path : " + remoteGitPath);
+        //System.out.println("remote commit id : " + remoteCommitId);
+        //System.out.println("local commit id : " + localCommitId);
+        //System.out.println("");
 
-        while (remoteCommitId != null) {
-            Commit commit = Commit.load(remoteCommitId);
-            remoteCommitHistory.add(remoteCommitId);
-            if (Objects.equals(localCommitId, remoteCommitId)) {
+        Commit commit = Commit.remoteLoad(remoteGitPath, remoteCommitId);    //远程的新 本地的旧 追溯远程
+        while (commit.getParent1() != null) {
+            remoteCommitHistory.add(commit.getSHA1());
+            if (Objects.equals(localCommitId, commit.getSHA1())) {
                 break;
             }
-            remoteCommitId = commit.getParent1();
+            commit = Commit.remoteLoad(remoteGitPath, commit.getParent1());
+        }
+        //remoteCommitHistory.add(commit.getSHA1());
+
+        if (remoteCommitHistory.isEmpty()) {
+            Utils.exitWithMessage("Please pull down remote changes before pushing.");
         }
 
+        Branch.setCommitId2(remoteName, remoteBranchName, remoteCommitId);
+        //Branch.setCommitId(remoteName + "/" + remoteBranchName, remoteCommitId);
+
         for (String commitId : remoteCommitHistory) {
-            Commit commit = Commit.remoteLoad(remoteGitPath, commitId);
+            commit = Commit.remoteLoad(remoteGitPath, commitId);
             for (Map.Entry<String, String> entry : commit.getBlobTree().entrySet()) {
-                Blob newBlob = new Blob(remoteGitPath, entry.getValue(), entry.getKey());
-                newBlob.save();
+                //System.out.println("Blob name : " + entry.getValue());
+                //System.out.println("Blob SHA1 L " + entry.getKey());
+                //Blob newBlob = new Blob(remoteGitPath, entry.getValue(), entry.getKey());
+                //System.out.println("new blob name : " + newBlob.getName());
+                //System.out.println("new blob SHA1 : " + newBlob.getSHA1());
+                //System.out.println("new blob content : " + newBlob.getContent().toString());
+                //newBlob.save();
+                Blob.copyFromRemote(remoteGitPath, entry.getKey());
             }
             commit.save();
         }
 
     }
 
-    public void pull(String remoteName, String remoteBranchName) {
+    public void pull(String remoteName, String remoteBranchName) throws IOException {
         fetch(remoteName, remoteBranchName);
         String localBranchName = remoteName + "/" + remoteBranchName;
-        localBranchName = localBranchName.replace("/", File.separator);
+        //localBranchName = localBranchName.replace("/", File.separator);
         merge(localBranchName);
     }
 
@@ -642,4 +738,27 @@ public class SomeObj {
         return null;
     }
 
+    private void ensureRemoteDirExists() {
+        if (!REMOTE_DIR.exists()) {
+            REMOTE_DIR.mkdirs();
+        }
+    }
+
+    private File remote_branchNameToBranchFile(String branchName) {
+
+        File branchFile = null;
+        if (branchName.contains("/")) {
+            String[] parts = branchName.split("/");
+            String remoteName = parts[0];  // 例如 R1
+            String remoteBranchName = parts[1];  // 例如 master
+
+            // 确保远程分支存在
+            branchFile = Utils.join(BRANCH_DIR, remoteName, remoteBranchName);
+            if (!branchFile.exists()) {
+                Utils.exitWithMessage("No such branch: " + branchName);
+            }
+        }
+        return branchFile;
+
+    }
 }

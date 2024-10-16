@@ -11,6 +11,14 @@ public class Branch {
         Utils.writeContents(branchFile, commitId);
     }
 
+    public static void setCommitId2(String name, String branchName, String commitId) {
+        if (!Utils.join(BRANCH_DIR, name).exists()) {
+            Utils.join(BRANCH_DIR, name).mkdir();
+        }
+        File branchFile = Utils.join(Utils.join(BRANCH_DIR, name), branchName);
+        Utils.writeContents(branchFile, commitId);
+    }
+
     public static String getCommitId(String branchName) {
         File branchFile = Utils.join(BRANCH_DIR, branchName);
         if (!branchFile.exists()) {
@@ -22,7 +30,7 @@ public class Branch {
 
     public static void setRemoteCommitId(String remoteGitPath, String remoteBranchName,
                                          String commitId) {
-        File branchDir = Utils.join(remoteGitPath, "/objects");
+        File branchDir = Utils.join(remoteGitPath, ".branch");
         if (!branchDir.exists()) {
             branchDir.mkdirs();  // 创建目录
         }
@@ -31,7 +39,8 @@ public class Branch {
     }
 
     public static String getRemoteCommitId(String remoteGitPath, String remoteBranchName) {
-        File remoteBranchFile = Utils.join(remoteGitPath + "/branch", remoteBranchName);
+        //File remoteBranchFile = Utils.join(remoteGitPath + ".branch", remoteBranchName);
+        File remoteBranchFile = Utils.join(Utils.join(remoteGitPath, ".branch"), remoteBranchName);
         if (!remoteBranchFile.exists()) {
             return null;
         } else {

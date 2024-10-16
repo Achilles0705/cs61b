@@ -1,5 +1,6 @@
 package gitlet;
 
+import java.io.IOException;
 import java.util.*;
 import static gitlet.Repository.*;
 
@@ -11,7 +12,7 @@ public class Main {
     /** Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         checkNoArgs(args);
         SomeObj bloop = new SomeObj();
@@ -23,6 +24,16 @@ public class Main {
             case "init":
                 checkArgsNum(args, 1);
                 bloop.init();
+                break;
+            case "add-remote":
+                checkCWD();
+                checkArgsNum(args, 3);
+                bloop.addRemote(args[1], args[2]);
+                break;
+            case "rm-remote":
+                checkCWD();
+                checkArgsNum(args, 2);
+                bloop.rmRemote(args[1]);
                 break;
             case "add":
                 checkCWD();
@@ -97,26 +108,21 @@ public class Main {
                 checkArgsNum(args, 2);
                 bloop.merge(args[1]);
                 break;
-            case "add-remote":
-                checkCWD();
-                checkArgsNum(args, 3);
-                bloop.addRemote(args[1], args[2]);
-            case "rm-remote":
-                checkCWD();
-                checkArgsNum(args, 2);
-                bloop.rmRemote(args[1]);
             case "push":
                 checkCWD();
                 checkArgsNum(args, 3);
                 bloop.push(args[1], args[2]);
+                break;
             case "fetch":
                 checkCWD();
                 checkArgsNum(args, 3);
                 bloop.fetch(args[1], args[2]);
+                break;
             case "pull":
                 checkCWD();
                 checkArgsNum(args, 3);
                 bloop.pull(args[1], args[2]);
+                break;
             default:
                 System.out.println("No command with that name exists.");
                 System.exit(0);

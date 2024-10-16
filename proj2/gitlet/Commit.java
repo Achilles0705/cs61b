@@ -88,7 +88,7 @@ public class Commit implements Serializable {
     }
 
     public static Commit remoteLoad(String remoteGitPath, String remoteCommitId) {
-        File branchFile = Utils.join(remoteGitPath + "/commits");
+        File branchFile = Utils.join(remoteGitPath, ".commits");
         if (remoteCommitId.length() < 40) {
             List<String> commitIdList = Utils.plainFilenamesIn(branchFile);
             for (String Id : commitIdList) {
@@ -147,7 +147,7 @@ public class Commit implements Serializable {
     }
 
     public void saveOnRemotePath(String remotePath) {
-        File commitsDir = Utils.join(remotePath, "/commits");
+        File commitsDir = Utils.join(remotePath, ".commits");
         if (!commitsDir.exists()) {
             commitsDir.mkdirs();  // 创建目录
         }

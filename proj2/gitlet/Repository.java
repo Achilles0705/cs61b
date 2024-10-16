@@ -25,7 +25,7 @@ public class Repository {
 
     public static final File BRANCH_DIR = join(GITLET_DIR, ".branch");
 
-    public static final File REMOTE_DIR = Utils.join(GITLET_DIR, "/remote");
+    public static final File REMOTE_DIR = Utils.join(GITLET_DIR, ".remote");
 
     public static final File STAGE_FILE = join(GITLET_DIR, "stagingArea");
 
