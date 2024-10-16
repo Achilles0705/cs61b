@@ -12,7 +12,7 @@ public class Main {
     /** Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 
         checkNoArgs(args);
         SomeObj bloop = new SomeObj();
@@ -109,19 +109,31 @@ public class Main {
                 bloop.merge(args[1]);
                 break;
             case "push":
-                checkCWD();
-                checkArgsNum(args, 3);
-                bloop.push(args[1], args[2]);
+                try {
+                    checkCWD();
+                    checkArgsNum(args, 3);
+                    bloop.push(args[1], args[2]);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 break;
             case "fetch":
-                checkCWD();
-                checkArgsNum(args, 3);
-                bloop.fetch(args[1], args[2]);
+                try {
+                    checkCWD();
+                    checkArgsNum(args, 3);
+                    bloop.fetch(args[1], args[2]);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 break;
             case "pull":
-                checkCWD();
-                checkArgsNum(args, 3);
-                bloop.pull(args[1], args[2]);
+                try {
+                    checkCWD();
+                    checkArgsNum(args, 3);
+                    bloop.pull(args[1], args[2]);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 break;
             default:
                 System.out.println("No command with that name exists.");
