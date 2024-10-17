@@ -12,7 +12,10 @@ public class SomeObj {
         if (!GITLET_DIR.exists()) {
             GITLET_DIR.mkdir();
         } else {
-            Utils.exitWithMessage("A Gitlet version-control system already exists in the current directory.");
+            Utils.exitWithMessage(
+                    "A Gitlet version-control system already exists "
+                            + "in the current directory."
+            );
         }
         OBJECTS_DIR.mkdir();
         COMMITS_DIR.mkdir();
@@ -44,7 +47,7 @@ public class SomeObj {
 
         if (headCommit.getBlobTree().containsKey(currentSHA1)) {  //最近提交里有，且完全相同
             if (currentStagingArea.getAddStage().containsValue(fileName)) { //在暂加区中，就删掉；不在暂加区不需要改动
-                currentStagingArea.addStage_removeValue(fileName);
+                currentStagingArea.removeAddStageValue(fileName);
             }
         } else {   //最近提交里有，但内容不同；最近提交中没有——合并为else
             currentStagingArea.getAddStage().put(currentSHA1, fileName);
@@ -55,7 +58,8 @@ public class SomeObj {
 
     public static void commit(String message) {
         StagingArea currentStagingArea = StagingArea.load();
-        if (currentStagingArea.getAddStage().isEmpty() && currentStagingArea.getRemoveStage().isEmpty()) {
+        if (currentStagingArea.getAddStage().isEmpty() &&
+                currentStagingArea.getRemoveStage().isEmpty()) {
             Utils.exitWithMessage("No changes added to the commit.");
         }
         if (message.isEmpty()) {
@@ -68,14 +72,9 @@ public class SomeObj {
     }
 
     public static void mergeCommit(String message, String head, String another) {
-        StagingArea currentStagingArea = StagingArea.load();
-        /*if (currentStagingArea.getAddStage().isEmpty() && currentStagingArea.getRemoveStage().isEmpty()) {
-            Utils.exitWithMessage("No changes added to the commit.");
-        }*/
         if (message.isEmpty()) {
             Utils.exitWithMessage("Please enter a commit message.");
         }
-        //String headCommitId = Branch.getCommitId(HEAD.getBranchName());
         Commit currentCommit = new Commit(message, head, another);
         currentCommit.save();
         Branch.setCommitId(HEAD.getBranchName(), currentCommit.getSHA1());
@@ -88,7 +87,8 @@ public class SomeObj {
         if (currentStagingArea.getAddStage().containsValue(fileName)) {    //已经暂存，则取消暂存
             String fileSHA1 = valueToKey(currentStagingArea.getAddStage(), fileName);
             currentStagingArea.getAddStage().remove(fileSHA1);
-        } else if (currentCommit.getBlobTree().containsValue(fileName)) {   //当前head commit中记录了该文件，则暂存删除
+        } else if (currentCommit.getBlobTree().containsValue(fileName)) {
+            //当前head commit中记录了该文件，则暂存删除
             currentStagingArea.getRemoveStage().add(fileName);
             Utils.restrictedDelete(Utils.join(CWD, fileName));
         } else {    //失败情况
@@ -100,51 +100,51 @@ public class SomeObj {
     public void log() { //merge情况已处理
         Commit currentCommit = null;
         if (HEAD.getBranchName().contains("/")) {   //重构log中的HEAD
-            File branchFile = remote_branchNameToBranchFile(HEAD.getBranchName());
+            File branchFile = branchNameToBranchFile(HEAD.getBranchName());
             currentCommit = Commit.load(Utils.readContentsAsString(branchFile));
         } else {
             currentCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
         }
         while (currentCommit.getParent1() != null) {
             if (currentCommit.getParent2() == null) {
-                System.out.println("===\n" +
-                        "commit " + currentCommit.getSHA1() + "\n" +
-                        "Date: " + currentCommit.getTimestamp() + "\n" +
-                        currentCommit.getMessage() + "\n");
+                System.out.println("===\n"
+                        + "commit " + currentCommit.getSHA1() + "\n"
+                        + "Date: " + currentCommit.getTimestamp() + "\n"
+                        + currentCommit.getMessage() + "\n");
             } else {
                 String shortId1 = currentCommit.getParent1().substring(0, 7);
                 String shortId2 = currentCommit.getParent2().substring(0, 7);
-                System.out.println("===\n" +
-                        "commit " + currentCommit.getSHA1() + "\n" +
-                        "Merge: " + shortId1 + " " + shortId2 + "\n" +
-                        "Date: " + currentCommit.getTimestamp() + "\n" +
-                        currentCommit.getMessage() + "\n");
+                System.out.println("===\n"
+                        + "commit " + currentCommit.getSHA1() + "\n"
+                        + "Merge: " + shortId1 + " " + shortId2 + "\n"
+                        + "Date: " + currentCommit.getTimestamp() + "\n"
+                        + currentCommit.getMessage() + "\n");
             }
             currentCommit = Commit.load(currentCommit.getParent1());
         }
-        System.out.println("===\n" +
-                "commit " + currentCommit.getSHA1() + "\n" +
-                "Date: " + currentCommit.getTimestamp() + "\n" +
-                currentCommit.getMessage() + "\n");
+        System.out.println("===\n"
+                + "commit " + currentCommit.getSHA1() + "\n"
+                + "Date: " + currentCommit.getTimestamp() + "\n"
+                + currentCommit.getMessage() + "\n");
     }
 
-    public void global_log() {  //merge情况已处理
+    public void globalLog() {  //merge情况已处理
         List<String> commitList = Utils.plainFilenamesIn(COMMITS_DIR);
         for (String commitId : commitList) {
             Commit currentCommit = Commit.load(commitId);
             if (currentCommit.getParent2() == null) {
-                System.out.println("===\n" +
-                        "commit " + commitId + "\n" +
-                        "Date: " + currentCommit.getTimestamp() + "\n" +
-                        currentCommit.getMessage() + "\n");
+                System.out.println("===\n"
+                        + "commit " + commitId + "\n"
+                        + "Date: " + currentCommit.getTimestamp() + "\n"
+                        + currentCommit.getMessage() + "\n");
             } else {
                 String shortId1 = currentCommit.getParent1().substring(0, 7);
                 String shortId2 = currentCommit.getParent2().substring(0, 7);
-                System.out.println("===\n" +
-                        "commit " + commitId + "\n" +
-                        "Merge: " + shortId1 + " " + shortId2 + "\n" +
-                        "Date: " + currentCommit.getTimestamp() + "\n" +
-                        currentCommit.getMessage() + "\n");
+                System.out.println("===\n"
+                        + "commit " + commitId + "\n"
+                        + "Merge: " + shortId1 + " " + shortId2 + "\n"
+                        + "Date: " + currentCommit.getTimestamp() + "\n"
+                        + currentCommit.getMessage() + "\n");
             }
         }
     }
@@ -169,8 +169,7 @@ public class SomeObj {
         }
     }
 
-    public void status() {  //两种思路 1.把branch换成像lab8一样的列表嵌套链表 2.通过HEAD往parent找，直至找到 3.重构branch
-        //较难
+    public void status() {  //较难
         TreeMap<String, String> addStage = StagingArea.load().getAddStage();
         TreeSet<String> removeStage = StagingArea.load().getRemoveStage();
         List<String> branchNameList = Utils.plainFilenamesIn(BRANCH_DIR);   //branch重构了
@@ -189,20 +188,21 @@ public class SomeObj {
         }
 
         System.out.println("\n=== Staged Files ===");
-        for (String StageName : sortedAddStageName) {
-            System.out.println(StageName);
+        for (String stageName : sortedAddStageName) {
+            System.out.println(stageName);
         }
 
         System.out.println("\n=== Removed Files ===");
-        for (String StageName : sortedRemoveStageName) {
-            System.out.println(StageName);
+        for (String stageName : sortedRemoveStageName) {
+            System.out.println(stageName);
         }
 
         System.out.println("\n=== Modifications Not Staged For Commit ===");
-        TreeSet<String> Modification_nameToPrint = new TreeSet<>();
+        TreeSet<String> modifiedNameToPrint = new TreeSet<>();
         List<String> fileNameInCWD = Utils.plainFilenamesIn(CWD);
         for (String fileName : fileNameInCWD) {
-            String currentFileHash = Utils.sha1(fileName, Utils.readContents(Utils.join(CWD, fileName)));
+            File filePath = Utils.join(CWD, fileName);
+            String currentFileHash = Utils.sha1(fileName, Utils.readContents(filePath));
             String commitBlobHash = valueToKey(headCommit.getBlobTree(), fileName);
             String addStageFileHash = valueToKey(addStage, fileName);
             boolean isExist = Utils.join(CWD, fileName).exists();
@@ -221,39 +221,38 @@ public class SomeObj {
                 }
             }
             if (isExist && (differentInCommit || differentInAddStage)) {
-                Modification_nameToPrint.add(fileName + " (modified)");
+                modifiedNameToPrint.add(fileName + " (modified)");
             }
 
         }
         for (Map.Entry<String, String> entry : headCommit.getBlobTree().entrySet()) {
 
             String fileName = entry.getValue();
-            boolean isExist = Utils.join(CWD, fileName).exists();
             boolean isNotExist = !Utils.join(CWD, fileName).exists();
             boolean isNotInRemoveStage = !removeStage.contains(fileName);
             boolean isInAddStage = addStage.containsValue(fileName);
             if (isNotExist && (isNotInRemoveStage || isInAddStage)) {
-                Modification_nameToPrint.add(fileName + " (deleted)");
+                modifiedNameToPrint.add(fileName + " (deleted)");
             }
 
         }
-        for (String name : Modification_nameToPrint) {
+        for (String name : modifiedNameToPrint) {
             System.out.println(name);
         }
 
         System.out.println("\n=== Untracked Files ===");
         List<String> fileList2 = Utils.plainFilenamesIn(CWD);
-        TreeSet<String> Untracked_nameToPrint = new TreeSet<>();
+        TreeSet<String> untrackedNameToPrint = new TreeSet<>();
         for (String fileName : fileList2) {
             boolean isNotInHead = !headCommit.getBlobTree().containsValue(fileName);
             boolean isNotInAddStage = !addStage.containsValue(fileName);
             boolean isInRemoveStage = removeStage.contains(fileName);  // 检查是否在RemoveStage中
             // 文件未被追踪，且未暂存，或者文件已经被标记为删除但重新出现
             if ((isNotInHead && isNotInAddStage) || isInRemoveStage) {
-                Untracked_nameToPrint.add(fileName);
+                untrackedNameToPrint.add(fileName);
             }
         }
-        for (String name : Untracked_nameToPrint) {
+        for (String name : untrackedNameToPrint) {
             System.out.println(name);
         }
         //最后两部分（未暂存的修改和未跟踪的文件）是额外加分，价值 32 分。请随意将它们留空（只留下标题）。
@@ -261,10 +260,10 @@ public class SomeObj {
     }
 
     public void checkoutFile(String fileName) {
-        checkoutCommit_File(Branch.getCommitId(HEAD.getBranchName()), fileName);
+        checkoutFileInCommit(Branch.getCommitId(HEAD.getBranchName()), fileName);
     }
 
-    public void checkoutCommit_File(String commitId, String fileName) {
+    public void checkoutFileInCommit(String commitId, String fileName) {
         if (Commit.load(commitId) == null) {
             Utils.exitWithMessage("No commit with that id exists.");
         }
@@ -275,16 +274,16 @@ public class SomeObj {
             String fileSHA1 = valueToKey(targetCommit.getBlobTree(), fileName);
 
             Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
-            Utils.writeContents(Utils.join(CWD, currentBlob.getName()), (Object) currentBlob.getContent());
+            File blobPath = Utils.join(CWD, currentBlob.getName());
+            Utils.writeContents(blobPath, (Object) currentBlob.getContent());
         }
-        //Branch.setCommitId(HEAD.getBranchName(), commitId);
     }
 
     public void checkoutBranch(String branchName) {
         //该功能需要到目标branch的最新commit，感觉HEAD需要重构一下
         //找到目标commit，把blobTree里的嘎嘎往CWD里加就完事了
         if (branchName.contains("/")) {
-            File branchFile = remote_branchNameToBranchFile(branchName);
+            File branchFile = branchNameToBranchFile(branchName);
 
             // 读取远程分支的 commit ID
             String commitId = Utils.readContentsAsString(branchFile);
@@ -301,7 +300,8 @@ public class SomeObj {
         if (!branchNameList.contains(branchName)) {
             Utils.exitWithMessage("No such branch exists.");
         }
-        Commit branchCommit = Commit.load(Branch.getCommitId(branchName));  //看CWD里有没有currentCommit没有的，如果存在就报错
+        Commit branchCommit = Commit.load(Branch.getCommitId(branchName));
+        //看CWD里有没有currentCommit没有的，如果存在就报错
         checkoutCommit(branchCommit);
         HEAD.setBranchName(branchName);
     }
@@ -316,7 +316,10 @@ public class SomeObj {
             boolean isNotInAddStage = !stagingArea.getAddStage().containsValue(fileName);
             boolean isInCurrentCommit = commit.getBlobTree().containsValue(fileName);
             if (isNotInHead && isNotInAddStage && isInCurrentCommit) {
-                Utils.exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
+                Utils.exitWithMessage(
+                        "There is an untracked file in the way; "
+                                + "delete it, or add and commit it first."
+                );
             }
         }
 
@@ -331,7 +334,8 @@ public class SomeObj {
         }
         for (String fileSHA1 : commit.getBlobTree().keySet()) {
             Blob currentBlob = Utils.readObject(Utils.join(OBJECTS_DIR, fileSHA1), Blob.class);
-            Utils.writeContents(Utils.join(CWD, currentBlob.getName()), (Object) currentBlob.getContent());
+            File blobPath = Utils.join(CWD, currentBlob.getName());
+            Utils.writeContents(blobPath, (Object) currentBlob.getContent());
         }
         stagingArea.clear();
         stagingArea.save();
@@ -345,7 +349,7 @@ public class SomeObj {
         Branch.setCommitId(branchName, Branch.getCommitId(HEAD.getBranchName()));
     }
 
-    public void rm_branch(String branchName) {
+    public void rmBranch(String branchName) {
         List<String> branchNameList = Utils.plainFilenamesIn(BRANCH_DIR);
         if (!branchNameList.contains(branchName)) {
             Utils.exitWithMessage("A branch with that name does not exist.");
@@ -365,23 +369,19 @@ public class SomeObj {
         Branch.setCommitId(HEAD.getBranchName(), commitId);
     }
 
-    public boolean isConflict = false;
-    public HashSet<String> skipFiles = new HashSet<>();
+    private boolean isConflict = false;
+    private HashSet<String> skipFiles = new HashSet<>();
 
     public void merge(String branchName) {  //最难
-
 
         StagingArea currentStage = StagingArea.load();
         String branchCommitId = null;
 
         if (branchName.contains("/")) {   //重构log中的HEAD
-
-
-            //StagingArea currentStage = StagingArea.load();
             if (!currentStage.getAddStage().isEmpty() || !currentStage.getRemoveStage().isEmpty()) {
                 Utils.exitWithMessage("You have uncommitted changes.");
             }
-            File branchFile = remote_branchNameToBranchFile(branchName);
+            File branchFile = branchNameToBranchFile(branchName);
             Commit remoteBranchCommit = Commit.load(Utils.readContentsAsString(branchFile));
             if (remoteBranchCommit == null) {
                 Utils.exitWithMessage("A branch with that name does not exist.");
@@ -390,12 +390,7 @@ public class SomeObj {
                 Utils.exitWithMessage("Cannot merge a branch with itself.");
             }
             branchCommitId = remoteBranchCommit.getSHA1();
-
-
         } else {
-
-
-            //StagingArea currentStage = StagingArea.load();
             if (!currentStage.getAddStage().isEmpty() || !currentStage.getRemoveStage().isEmpty()) {
                 Utils.exitWithMessage("You have uncommitted changes.");
             }
@@ -407,9 +402,7 @@ public class SomeObj {
                 Utils.exitWithMessage("Cannot merge a branch with itself.");
             }
             branchCommitId = Branch.getCommitId(branchName);
-
         }
-
 
         List<String> fileList2 = Utils.plainFilenamesIn(CWD);
         Commit headCommit = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
@@ -417,14 +410,16 @@ public class SomeObj {
             boolean isNotInHead = !headCommit.getBlobTree().containsValue(fileName);
             boolean isNotInAddStage = !currentStage.getAddStage().containsValue(fileName);
             if (isNotInHead && isNotInAddStage) {
-                Utils.exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
+                Utils.exitWithMessage(
+                        "There is an untracked file in the way; "
+                                + "delete it, or add and commit it first."
+                );
             }
         }
 
         String newMessage = null;
         String headCommitId = Branch.getCommitId(HEAD.getBranchName()); //CWD中是headCommit的文件
-        //String branchCommitId = Branch.getCommitId(branchName);
-        String splitPointCommitId = merge_findAncestor(headCommitId, branchCommitId);
+        String splitPointCommitId = findAncestor(headCommitId, branchCommitId);
 
         if (Objects.equals(splitPointCommitId, branchCommitId)) {
             Utils.exitWithMessage("Given branch is an ancestor of the current branch.");
@@ -435,8 +430,10 @@ public class SomeObj {
             Utils.exitWithMessage("Current branch fast-forwarded.");
         }
 
-        merge_splitPointCheck(Commit.load(headCommitId), Commit.load(branchCommitId), Commit.load(splitPointCommitId));
-        merge_notSplitPointCheck(Commit.load(headCommitId), Commit.load(branchCommitId), Commit.load(splitPointCommitId));
+        Commit branchCommit = Commit.load(branchCommitId);
+        Commit splitPointCommit = Commit.load(splitPointCommitId);
+        splitPointCheck(headCommit, branchCommit, splitPointCommit);
+        notSplitPointCheck(headCommit, branchCommit, splitPointCommit);
 
         List<String> fileList = Utils.plainFilenamesIn(CWD);
         for (String fileName : fileList) {
@@ -452,38 +449,47 @@ public class SomeObj {
 
     }
 
-    private void merge_splitPointCheck(Commit headCommit, Commit branchCommit, Commit splitPointCommit) {
+    private void splitPointCheck(Commit headCommit, Commit branchCommit, Commit splitPointCommit) {
 
-        TreeMap<String,String> splitPointTree = splitPointCommit.getBlobTree();
-        TreeMap<String,String> headCommitTree = headCommit.getBlobTree();
-        TreeMap<String,String> branchCommitTree = branchCommit.getBlobTree();
+        TreeMap<String, String> splitPointTree = splitPointCommit.getBlobTree();
+        TreeMap<String, String> headCommitTree = headCommit.getBlobTree();
+        TreeMap<String, String> branchCommitTree = branchCommit.getBlobTree();
 
         for (Map.Entry<String, String> entry : splitPointTree.entrySet()) {
             String currentKey = entry.getKey();
             String currentName = entry.getValue();
             String headKey = valueToKey(headCommitTree, currentName);
             String branchKey = valueToKey(branchCommitTree, currentName);
-            if (headCommitTree.containsKey(currentKey) && branchCommitTree.containsKey(currentKey)) {
+            boolean isInHeadCommit = headCommitTree.containsKey(currentKey);
+            boolean isNotInHeadCommit = !headCommitTree.containsKey(currentKey);
+            boolean isInBranchCommit = branchCommitTree.containsKey(currentKey);
+            boolean nameIsInHeadCommit = headCommitTree.containsValue(currentName);
+            boolean nameIsInBranchCommit = branchCommitTree.containsValue(currentName);
+            boolean nameIsNotInHeadCommit = !headCommitTree.containsValue(currentName);
+            boolean nameIsNotInBranchCommit = !branchCommitTree.containsValue(currentName);
+            if (isInHeadCommit && isInBranchCommit) {
                 continue;
-            } else if (headCommitTree.containsKey(currentKey)) {   //unmodified in HEAD
-                if (branchCommitTree.containsValue(currentName)) { //modified in other--1
-                    checkoutCommit_File(branchCommit.getSHA1(), currentName);
-                } else if (!branchCommitTree.containsValue(currentName)) { //not present in other--6
+            } else if (isInHeadCommit) {   //unmodified in HEAD
+                if (nameIsInBranchCommit) { //modified in other--1
+                    checkoutFileInCommit(branchCommit.getSHA1(), currentName);
+                } else if (nameIsNotInBranchCommit) { //not present in other--6
                     rm(currentName);
                 }
-            } else if (branchCommitTree.containsKey(currentKey)) {   //unmodified in other
-                if (headCommitTree.containsValue(currentName) && !headCommitTree.containsKey(currentKey)) {
+            } else if (isInBranchCommit) {   //unmodified in other
+                if (nameIsInHeadCommit && isNotInHeadCommit) {
                     //modified in HEAD--2
-                    checkoutCommit_File(headCommit.getSHA1(), currentName);
+                    checkoutFileInCommit(headCommit.getSHA1(), currentName);
                 }
                 //not present in HEAD--7
-            } else if (headCommitTree.containsValue(entry.getValue()) && branchCommitTree.containsValue(currentName)) {
+            } else if (nameIsInHeadCommit && nameIsInBranchCommit) {
                 if (!Objects.equals(headKey, branchKey)) {  //in diff way--3b,3a不变
-                    Utils.writeContents(Utils.join(CWD, currentName), conflictFileContents(headKey, branchKey));
+                    String conflictContents = conflictFileContents(headKey, branchKey);
+                    Utils.writeContents(Utils.join(CWD, currentName), conflictContents);
                 }
-            } else if (headCommitTree.containsValue(currentName) && !branchCommitTree.containsValue(currentName)) {
-                Utils.writeContents(Utils.join(CWD, currentName), conflictFileContents(headKey, branchKey));
-            } else if (!headCommitTree.containsValue(currentName) && !branchCommitTree.containsValue(currentName)) {
+            } else if (nameIsInHeadCommit && nameIsNotInBranchCommit) {
+                String conflictContents = conflictFileContents(headKey, branchKey);
+                Utils.writeContents(Utils.join(CWD, currentName), conflictContents);
+            } else if (nameIsNotInHeadCommit && nameIsNotInBranchCommit) {
                 skipFiles.add(currentName);
             }
         }
@@ -510,26 +516,32 @@ public class SomeObj {
         return "<<<<<<< HEAD\n" + currentContents + "=======\n" + mergedContents + ">>>>>>>\n";
     }
 
-    private void merge_notSplitPointCheck(Commit headCommit, Commit branchCommit, Commit splitPointCommit) {
+    private void notSplitPointCheck(Commit headCommit, Commit branchCommit, Commit splitPointCommit) {
 
-        TreeMap<String,String> splitPointTree = splitPointCommit.getBlobTree();
-        TreeMap<String,String> headCommitTree = headCommit.getBlobTree();
-        TreeMap<String,String> branchCommitTree = branchCommit.getBlobTree();
+        TreeMap<String, String> splitPointTree = splitPointCommit.getBlobTree();
+        TreeMap<String, String> headCommitTree = headCommit.getBlobTree();
+        TreeMap<String, String> branchCommitTree = branchCommit.getBlobTree();
 
         for (Map.Entry<String, String> entry : branchCommitTree.entrySet()) {   //5,4不变
             String currentName = entry.getValue();
+            String currentKey = entry.getKey();
+            boolean isNotInHeadCommit = !headCommitTree.containsKey(currentKey);
+            boolean nameIsNotInSplitPoint = !splitPointTree.containsValue(currentName);
+            boolean nameIsInHeadCommit = headCommitTree.containsValue(currentName);
+            boolean nameIsNotInHeadCommit = !headCommitTree.containsValue(currentName);
             String headKey = valueToKey(headCommitTree, currentName);
             String branchKey = valueToKey(branchCommitTree, currentName);
-            if (!splitPointTree.containsValue(entry.getValue()) && !headCommitTree.containsValue(entry.getValue())) {
-                checkoutCommit_File(branchCommit.getSHA1(), entry.getValue());
-            } else if (!splitPointTree.containsValue(entry.getValue()) && headCommitTree.containsValue(entry.getValue()) && !headCommitTree.containsKey(entry.getKey())) {
-                Utils.writeContents(Utils.join(CWD, currentName), conflictFileContents(headKey, branchKey));
+            if (nameIsNotInSplitPoint && nameIsNotInHeadCommit) {
+                checkoutFileInCommit(branchCommit.getSHA1(), entry.getValue());
+            } else if (nameIsNotInSplitPoint && nameIsInHeadCommit && isNotInHeadCommit) {
+                String conflictContents = conflictFileContents(headKey, branchKey);
+                Utils.writeContents(Utils.join(CWD, currentName), conflictContents);
             }
         }
 
     }
 
-    private String merge_findAncestor(String headCommitId, String targetCommitId) {
+    private String findAncestor(String headCommitId, String targetCommitId) {
 
         Queue<String> headCommitQueue = new LinkedList<>();
         Queue<String> targetCommitQueue = new LinkedList<>();
@@ -537,7 +549,7 @@ public class SomeObj {
         headCommitQueue.add(headCommitId);
         targetCommitQueue.add(targetCommitId);
 
-        while(!headCommitQueue.isEmpty()) {
+        while (!headCommitQueue.isEmpty()) {
             String currentCommitId = headCommitQueue.poll();
             if (Objects.equals(currentCommitId, targetCommitId)) {
                 return currentCommitId;
@@ -552,7 +564,7 @@ public class SomeObj {
             }
         }
 
-        while(!targetCommitQueue.isEmpty()) {
+        while (!targetCommitQueue.isEmpty()) {
             String currentCommitId = targetCommitQueue.poll();
             if (booked.contains(currentCommitId)) {
                 return currentCommitId;
@@ -595,27 +607,14 @@ public class SomeObj {
         File remoteFolder = new File(remoteGitPath);
 
         if (!remoteFolder.exists()) {
-            //if (remoteGitPath == null) {
             Utils.exitWithMessage("Remote directory not found.");
         }
         String localBranchName = HEAD.getBranchName();
         List<String> commitHistory = new ArrayList<>();
         String localCommitId = Branch.getCommitId(localBranchName);
         String remoteCommitId = Branch.getRemoteCommitId(remoteGitPath, remoteBranchName);
-        //System.out.println("local commit id : " + localCommitId);
-        //System.out.println("remote commit id : " + remoteCommitId);
-        //Branch.setRemoteCommitId(remoteGitPath, remoteBranchName, localCommitId);
 
         boolean isHistory = false;
-        /*while (localCommitId != null) {
-            Commit commit = Commit.load(localCommitId);
-            commitHistory.add(localCommitId);
-            if (Objects.equals(localCommitId, remoteCommitId)) {
-                isHistory = true;
-                break;
-            }
-            localCommitId = commit.getParent1();
-        }*/
 
         Commit commit = Commit.load(localCommitId);
         while (commit.getParent1() != null) {
@@ -630,12 +629,10 @@ public class SomeObj {
         if (!isHistory) {
             Utils.exitWithMessage("Please pull down remote changes before pushing.");
         }
-        //Branch.setRemoteCommitId(remoteGitPath, remoteBranchName, localCommitId);
 
         for (String commitId : commitHistory) {
             commit = Commit.load(commitId);
             for (Map.Entry<String, String> entry : commit.getBlobTree().entrySet()) {
-                //Blob newBlob = new Blob(remoteGitPath, entry.getValue(), entry.getKey());
                 Blob newBlob = new Blob(entry.getValue());
                 newBlob.saveOnRemotePath(remoteGitPath);
             }
@@ -654,7 +651,6 @@ public class SomeObj {
         File remoteFolder = new File(remoteGitPath);
 
         if (!remoteFolder.exists()) {
-        //if (remoteGitPath == null) {
             Utils.exitWithMessage("Remote directory not found.");
         }
         if (Branch.getRemoteCommitId(remoteGitPath, remoteBranchName) == null) {
@@ -667,13 +663,6 @@ public class SomeObj {
         String remoteCommitId = Branch.getRemoteCommitId(remoteGitPath, remoteBranchName);
         String localCommitId = Branch.getCommitId(localBranchName);
         List<String> remoteCommitHistory = new ArrayList<>();
-        //HEAD.setBranchName(localBranchName);
-        //Branch.setCommitId(localBranchName, remoteCommitId);
-        //Branch.setCommitId2(remoteName, remoteBranchName, remoteCommitId);
-        //System.out.println("remote git path : " + remoteGitPath);
-        //System.out.println("remote commit id : " + remoteCommitId);
-        //System.out.println("local commit id : " + localCommitId);
-        //System.out.println("");
 
         Commit commit = Commit.remoteLoad(remoteGitPath, remoteCommitId);    //远程的新 本地的旧 追溯远程
         while (commit.getParent1() != null) {
@@ -683,25 +672,16 @@ public class SomeObj {
             }
             commit = Commit.remoteLoad(remoteGitPath, commit.getParent1());
         }
-        //remoteCommitHistory.add(commit.getSHA1());
 
         if (remoteCommitHistory.isEmpty()) {
             Utils.exitWithMessage("Please pull down remote changes before pushing.");
         }
 
         Branch.setCommitId2(remoteName, remoteBranchName, remoteCommitId);
-        //Branch.setCommitId(remoteName + "/" + remoteBranchName, remoteCommitId);
 
         for (String commitId : remoteCommitHistory) {
             commit = Commit.remoteLoad(remoteGitPath, commitId);
             for (Map.Entry<String, String> entry : commit.getBlobTree().entrySet()) {
-                //System.out.println("Blob name : " + entry.getValue());
-                //System.out.println("Blob SHA1 L " + entry.getKey());
-                //Blob newBlob = new Blob(remoteGitPath, entry.getValue(), entry.getKey());
-                //System.out.println("new blob name : " + newBlob.getName());
-                //System.out.println("new blob SHA1 : " + newBlob.getSHA1());
-                //System.out.println("new blob content : " + newBlob.getContent().toString());
-                //newBlob.save();
                 Blob.copyFromRemote(remoteGitPath, entry.getKey());
             }
             commit.save();
@@ -712,7 +692,6 @@ public class SomeObj {
     public void pull(String remoteName, String remoteBranchName) throws IOException {
         fetch(remoteName, remoteBranchName);
         String localBranchName = remoteName + "/" + remoteBranchName;
-        //localBranchName = localBranchName.replace("/", File.separator);
         merge(localBranchName);
     }
 
@@ -744,7 +723,7 @@ public class SomeObj {
         }
     }
 
-    private File remote_branchNameToBranchFile(String branchName) {
+    private File branchNameToBranchFile(String branchName) {
 
         File branchFile = null;
         if (branchName.contains("/")) {

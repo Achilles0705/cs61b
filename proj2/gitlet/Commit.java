@@ -55,7 +55,8 @@ public class Commit implements Serializable {
         }
         StagingArea currentStagingArea = StagingArea.load();
 
-        for (Map.Entry<String, String> entry : currentStagingArea.getAddStage().entrySet()) {   //有同名文件则删除
+        for (Map.Entry<String, String> entry : currentStagingArea.getAddStage().entrySet()) {
+            //有同名文件则删除
             if (blobTree.containsValue(entry.getValue())) {
                 String fileSHA1 = SomeObj.valueToKey(blobTree, entry.getValue());
                 blobTree.remove(fileSHA1);
@@ -73,9 +74,9 @@ public class Commit implements Serializable {
     public static Commit load(String commitId) {
         if (commitId.length() < 40) {
             List<String> commitIdList = Utils.plainFilenamesIn(COMMITS_DIR);
-            for (String Id : commitIdList) {
-                if (Id.startsWith(commitId)) {
-                    commitId = Id;
+            for (String id : commitIdList) {
+                if (id.startsWith(commitId)) {
+                    commitId = id;
                     break;
                 }
             }
@@ -91,9 +92,9 @@ public class Commit implements Serializable {
         File branchFile = Utils.join(remoteGitPath, ".commits");
         if (remoteCommitId.length() < 40) {
             List<String> commitIdList = Utils.plainFilenamesIn(branchFile);
-            for (String Id : commitIdList) {
-                if (Id.startsWith(remoteCommitId)) {
-                    remoteCommitId = Id;
+            for (String id : commitIdList) {
+                if (id.startsWith(remoteCommitId)) {
+                    remoteCommitId = id;
                     break;
                 }
             }

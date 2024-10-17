@@ -3,7 +3,6 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Files;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
@@ -21,9 +20,9 @@ public class Blob implements Serializable {
     }
 
 
-    public static void copyFromRemote(String remotePath, String SHA1) throws IOException {
-        File currentFile = Utils.join(Utils.join(remotePath, ".objects"), SHA1);
-        File targetFile = Utils.join(Utils.join(OBJECTS_DIR), SHA1);
+    public static void copyFromRemote(String remotePath, String sha1) throws IOException {
+        File currentFile = Utils.join(Utils.join(remotePath, ".objects"), sha1);
+        File targetFile = Utils.join(Utils.join(OBJECTS_DIR), sha1);
 
         // 使用 FileChannel 来进行文件拷贝
         try (FileInputStream inStream = new FileInputStream(currentFile);
@@ -32,30 +31,6 @@ public class Blob implements Serializable {
              FileChannel outChannel = outStream.getChannel()) {
             inChannel.transferTo(0, inChannel.size(), outChannel);
         }
-    }
-
-    public static void copyFromCurrent(String remotePath, String SHA1) throws IOException {
-        File currentFile = Utils.join(Utils.join(remotePath, ".objects"), SHA1);
-        File targetFile = Utils.join(Utils.join(OBJECTS_DIR), SHA1);
-
-        // 使用 FileChannel 来进行文件拷贝
-        try (FileInputStream inStream = new FileInputStream(currentFile);
-             FileOutputStream outStream = new FileOutputStream(targetFile);
-             FileChannel inChannel = inStream.getChannel();
-             FileChannel outChannel = outStream.getChannel()) {
-            inChannel.transferTo(0, inChannel.size(), outChannel);
-        }
-    }
-
-
-
-    public Blob(String remotePath, String name, String SHA1) throws IOException {
-        this.name = name;
-        //File remoteBlob = Utils.join(remotePath + "/objects", SHA1);
-        File remoteBlob = Utils.join(Utils.join(remotePath, ".objects"), SHA1);
-        //String content = Utils.readContentsAsString(remoteBlob);
-        //this.contents = content.getBytes();
-        this.contents = Files.readAllBytes(remoteBlob.toPath());
     }
 
     public String getSHA1() {

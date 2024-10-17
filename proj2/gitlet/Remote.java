@@ -2,13 +2,10 @@ package gitlet;
 
 import java.io.File;
 import static gitlet.Repository.*;
-import static gitlet.Repository.REMOTE_DIR;
-import static gitlet.Utils.join;
 
 public class Remote {
 
     public static void addRemotePath(String remoteName, String remoteGitPath) {
-        //Utils.writeContents(Utils.join(REMOTE_DIR + "/branch", remoteName), remoteGitPath);
         Utils.writeContents(Utils.join(REMOTE_DIR, remoteName), remoteGitPath);
     }
 

@@ -35,8 +35,9 @@ public class StagingArea implements Serializable {
         removeStage.clear();
     }
 
-    public void addStage_removeValue(String value) {
-        Iterator<Map.Entry<String, String>> iterator = addStage.entrySet().iterator();  //使用迭代器遍历 HashMap
+    public void removeAddStageValue(String value) {
+        Iterator<Map.Entry<String, String>> iterator = addStage.entrySet().iterator();
+        //使用迭代器遍历 HashMap
         while (iterator.hasNext()) {
             Map.Entry<String, String> entry = iterator.next();
             if (entry.getValue().equals(value)) {   //检查当前 value 是否与要删除的 value 相匹配

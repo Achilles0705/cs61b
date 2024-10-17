@@ -1,7 +1,6 @@
 package gitlet;
 
 import java.io.IOException;
-import java.util.*;
 import static gitlet.Repository.*;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
@@ -58,7 +57,7 @@ public class Main {
             case "global-log":
                 checkCWD();
                 checkArgsNum(args, 1);
-                bloop.global_log();
+                bloop.globalLog();
                 break;
             case "find":
                 checkCWD();
@@ -85,7 +84,7 @@ public class Main {
                     if (!args[2].equals("--")) {
                         Utils.exitWithMessage("Incorrect operands.");
                     }
-                    bloop.checkoutCommit_File(args[1], args[3]);
+                    bloop.checkoutFileInCommit(args[1], args[3]);
                 }
                 break;
             case "branch":
@@ -96,7 +95,7 @@ public class Main {
             case "rm-branch":
                 checkCWD();
                 checkArgsNum(args, 2);
-                bloop.rm_branch(args[1]);
+                bloop.rmBranch(args[1]);
                 break;
             case "reset":
                 checkCWD();
