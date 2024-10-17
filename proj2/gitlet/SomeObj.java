@@ -58,8 +58,8 @@ public class SomeObj {
 
     public static void commit(String message) {
         StagingArea currentStagingArea = StagingArea.load();
-        if (currentStagingArea.getAddStage().isEmpty() &&
-                currentStagingArea.getRemoveStage().isEmpty()) {
+        if (currentStagingArea.getAddStage().isEmpty()
+                && currentStagingArea.getRemoveStage().isEmpty()) {
             Utils.exitWithMessage("No changes added to the commit.");
         }
         if (message.isEmpty()) {
@@ -186,17 +186,14 @@ public class SomeObj {
             }
             System.out.println(branchName);
         }
-
         System.out.println("\n=== Staged Files ===");
         for (String stageName : sortedAddStageName) {
             System.out.println(stageName);
         }
-
         System.out.println("\n=== Removed Files ===");
         for (String stageName : sortedRemoveStageName) {
             System.out.println(stageName);
         }
-
         System.out.println("\n=== Modifications Not Staged For Commit ===");
         TreeSet<String> modifiedNameToPrint = new TreeSet<>();
         List<String> fileNameInCWD = Utils.plainFilenamesIn(CWD);
@@ -223,10 +220,8 @@ public class SomeObj {
             if (isExist && (differentInCommit || differentInAddStage)) {
                 modifiedNameToPrint.add(fileName + " (modified)");
             }
-
         }
         for (Map.Entry<String, String> entry : headCommit.getBlobTree().entrySet()) {
-
             String fileName = entry.getValue();
             boolean isNotExist = !Utils.join(CWD, fileName).exists();
             boolean isNotInRemoveStage = !removeStage.contains(fileName);
@@ -234,12 +229,10 @@ public class SomeObj {
             if (isNotExist && (isNotInRemoveStage || isInAddStage)) {
                 modifiedNameToPrint.add(fileName + " (deleted)");
             }
-
         }
         for (String name : modifiedNameToPrint) {
             System.out.println(name);
         }
-
         System.out.println("\n=== Untracked Files ===");
         List<String> fileList2 = Utils.plainFilenamesIn(CWD);
         TreeSet<String> untrackedNameToPrint = new TreeSet<>();
@@ -255,8 +248,6 @@ public class SomeObj {
         for (String name : untrackedNameToPrint) {
             System.out.println(name);
         }
-        //最后两部分（未暂存的修改和未跟踪的文件）是额外加分，价值 32 分。请随意将它们留空（只留下标题）。
-
     }
 
     public void checkoutFile(String fileName) {
@@ -433,7 +424,7 @@ public class SomeObj {
         Commit branchCommit = Commit.load(branchCommitId);
         Commit splitPointCommit = Commit.load(splitPointCommitId);
         splitPointCheck(headCommit, branchCommit, splitPointCommit);
-        notSplitPointCheck(headCommit, branchCommit, splitPointCommit);
+        notSplitCheck(headCommit, branchCommit, splitPointCommit);
 
         List<String> fileList = Utils.plainFilenamesIn(CWD);
         for (String fileName : fileList) {
@@ -516,7 +507,7 @@ public class SomeObj {
         return "<<<<<<< HEAD\n" + currentContents + "=======\n" + mergedContents + ">>>>>>>\n";
     }
 
-    private void notSplitPointCheck(Commit headCommit, Commit branchCommit, Commit splitPointCommit) {
+    private void notSplitCheck(Commit headCommit, Commit branchCommit, Commit splitPointCommit) {
 
         TreeMap<String, String> splitPointTree = splitPointCommit.getBlobTree();
         TreeMap<String, String> headCommitTree = headCommit.getBlobTree();
