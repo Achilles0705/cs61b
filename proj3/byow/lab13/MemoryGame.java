@@ -54,27 +54,20 @@ public class MemoryGame {
         StdDraw.clear(Color.BLACK);
         StdDraw.enableDoubleBuffering();
 
-        //TODO: Initialize random number generator
         rand = new Random(seed);
-        //String tmp = generateRandomString(10);
-        //drawFrame(tmp);
-        //System.out.println(tmp);
     }
 
     public String generateRandomString(int n) {
-        //TODO: Generate random string of letters of length n
         StringBuilder randomString = new StringBuilder();
         for (int i = 0; i < n; i++) {
             int index = RandomUtils.uniform(rand, n) % 26;
             randomString.append(CHARACTERS[index]);
         }
         return randomString.toString();
-        //return null;
     }
 
     public void drawFrame(String s) {
-        //TODO: Take the string and display it in the center of the screen
-        //TODO: If game is not over, display relevant game information at the top of the screen
+
         Font font = new Font("Monaco", Font.BOLD, 30);
         StdDraw.setFont(font);
         StdDraw.clear(Color.BLACK);
@@ -96,10 +89,10 @@ public class MemoryGame {
         StdDraw.textRight(width, currentHeight, encouragement);
 
         StdDraw.show();
+
     }
 
     public void flashSequence(String letters) {
-        //TODO: Display each character in letters, making sure to blank the screen between letters
         for (int i = 0; i < letters.length(); i++) {
             drawFrame(String.valueOf(letters.charAt(i)));
             StdDraw.pause(1000);
@@ -125,7 +118,6 @@ public class MemoryGame {
     }
 
     public String solicitNCharsInput(int n) {
-        //TODO: Read n letters of player input
         clearTypedKey();
         String tmpString = "";
         for (int i = 0; i < n; ) {
@@ -138,12 +130,9 @@ public class MemoryGame {
         checkEnterKey();
         playerTurn = false;
         return tmpString;
-        //return null;
     }
 
     public void startGame() {
-        //TODO: Set any relevant variables before the game starts
-        //TODO: Establish Engine loop
 
         while (!gameOver) {
             round ++;
@@ -161,9 +150,8 @@ public class MemoryGame {
     }
 
     public void gameOver() {
-        //Font font = new Font("Monaco", Font.BOLD, 30);
-        //StdDraw.setFont(font);
-        //StdDraw.setPenColor(Color.WHITE);
+        Font font = new Font("Monaco", Font.BOLD, 30);
+        StdDraw.setFont(font);
         StdDraw.clear(Color.BLACK);
         StdDraw.text((double) width / 2 , (double) height / 2, "Game Over! You made it to round: " + round);
         StdDraw.show();
