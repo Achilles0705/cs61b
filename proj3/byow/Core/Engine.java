@@ -52,13 +52,13 @@ public class Engine {
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
 
-        int seed = 0;
+        long seed = 0;
         String regex = "n(\\d+)s"; // 正则表达式，括号定义了捕获组
         Pattern pattern = Pattern.compile(regex); // 1. 创建 Pattern 对象
         Matcher matcher = pattern.matcher(input); // 2. 创建 Matcher 对象
         if (matcher.find()) {  // find() 方法尝试查找第一个匹配项
             String seedString = matcher.group(1);
-            seed = Integer.parseInt(seedString);
+            seed = Long.parseLong(seedString);
         } else {
 
         }
@@ -201,7 +201,7 @@ public class Engine {
     public static void main(String[] args) {
         TETile[][] world;
         ter.initialize(WIDTH, HEIGHT);
-        world = interactWithInputString("n1218s");
+        world = interactWithInputString("n5197880843569031643s");
         ter.renderFrame(world);
     }
 
