@@ -25,7 +25,7 @@ public class Room {
     public static boolean isOverlapped(List<Room> rooms, Room currentRoom) {
         List<Room> roomsCopy = new LinkedList<>(rooms);
         while (!roomsCopy.isEmpty()) {
-            Room tmpRoom = roomsCopy.removeFirst();
+            Room tmpRoom = roomsCopy.remove(0);
             if (isOverlappedInTwo(tmpRoom, currentRoom)) {
                 return true;
             }
@@ -44,7 +44,7 @@ public class Room {
     public static void fillInRooms(TETile[][] world, List<Room> rooms) {
         List<Room> roomsCopy = new LinkedList<>(rooms);
         while (!roomsCopy.isEmpty()) {
-            Room currentRoom = roomsCopy.removeFirst();
+            Room currentRoom = roomsCopy.remove(0);
             fillInOneRoom(world, currentRoom);
         }
     }
@@ -68,7 +68,7 @@ public class Room {
     public static void connectRoom(int index, Room currentRoom, List<Room> rooms) {
         List<Room> copyRoomList = rooms;
         while (!copyRoomList.isEmpty() && index != 0) {
-            Room tmpRoom = copyRoomList.removeFirst();
+            Room tmpRoom = copyRoomList.remove(0);
             index--;
         }
     }
