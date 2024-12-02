@@ -15,8 +15,6 @@ public class Engine {
     public static final int HEIGHT = 30;
     static Random rand;
 
-    //static TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
-
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
      * including inputs from the main menu.
@@ -117,37 +115,57 @@ public class Engine {
         int maxY = Math.max(corridor.start.y, corridor.end.y);
         if (corridor.isHorizontal) {
             // 绘制水平走廊及墙壁
-            for (int x = minX - 1; x <= maxX + 1; x++) {
-                for (int y = corridor.start.y - 1; y <= corridor.start.y + corridor.width; y++) {
-                    if (!checkBorder(x, y)) {
+            for (int x = minX; x <= maxX; x++) {
+                for (int y = minY - 1; y <= minY + corridor.width; y++) {
+                    if (illegal(x, y)) {
                         return;
                     }
-                    if (y == corridor.start.y || y == corridor.start.y + corridor.width - 1) {
-                        world[x][y] = Tileset.FLOOR; // 中间部分是地板
+                    if (y == minY || y == minY + corridor.width - 1) {
+                        //world[x][y] = Tileset.FLOWER; // 中间部分是地板
+                        world[x][y] = Tileset.FLOOR;
                     } else if (world[x][y] == null || world[x][y] == Tileset.NOTHING) {
                         world[x][y] = Tileset.WALL; // 周围是墙
                     }
+                }
+            }
+            for (int y = minY - 1; y <= minY + corridor.width; y++) {
+                if (world[minX - 1][y] == null || world[minX - 1][y] == Tileset.NOTHING) {
+                    world[minX - 1][y] = Tileset.WALL;
+                }
+                if (world[maxX + 1][y] == null || world[maxX + 1][y] == Tileset.NOTHING) {
+                    world[maxX + 1][y] = Tileset.WALL;
                 }
             }
         } else {
             // 绘制垂直走廊及墙壁
-            for (int y = minY - 1; y <= maxY + 1; y++) {
-                for (int x = corridor.start.x - 1; x <= corridor.start.x + corridor.width; x++) {
-                    if (!checkBorder(x, y)) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int x = minX - 1; x <= minX + corridor.width; x++) {
+                    if (illegal(x, y)) {
                         return;
                     }
-                    if (x == corridor.start.x || x == corridor.start.x + corridor.width - 1) {
-                        world[x][y] = Tileset.FLOOR; // 中间部分是地板
+                    if (x == minX || x == minX + corridor.width - 1) {
+                        //world[x][y] = Tileset.WATER; // 中间部分是地板
+                        world[x][y] = Tileset.FLOOR;
                     } else if (world[x][y] == null || world[x][y] == Tileset.NOTHING) {
                         world[x][y] = Tileset.WALL; // 周围是墙
                     }
                 }
             }
+            for (int x = minX - 1; x <= minX + corridor.width; x++) {
+                if (world[x][minY - 1] == null || world[x][minY - 1] == Tileset.NOTHING) {
+                    world[x][minY - 1] = Tileset.WALL;
+                }
+                if (world[x][maxY + 1] == null || world[x][maxY + 1] == Tileset.NOTHING) {
+                    world[x][maxY + 1] = Tileset.WALL;
+                }
+            }
         }
+        //world[corridor.start.x][corridor.start.y] = Tileset.GRASS;
+        //world[corridor.end.x][corridor.end.y] = Tileset.GRASS;
     }
 
-    private static boolean checkBorder(int x, int y) {
-        return x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT;
+    private static boolean illegal(int x, int y) {
+        return x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT;
     }
 
     public static List<Corridor> generateCorridors(List<Room> rooms) {
