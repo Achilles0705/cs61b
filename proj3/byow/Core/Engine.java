@@ -13,6 +13,7 @@ public class Engine {
     /* Feel free to change the width and height. */
     public static final int WIDTH = 80;
     public static final int HEIGHT = 30;
+    static Random rand;
 
     //static TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
 
@@ -64,7 +65,7 @@ public class Engine {
 
         }
 
-        Random rand = new Random(seed);
+        rand = new Random(seed);
         List<Room> rooms = new ArrayList<>();
         int roomNum = RandomUtils.uniform(rand, 2, 20);
         for (int i = 0; i < roomNum; i++) {
@@ -79,7 +80,6 @@ public class Engine {
             if (maxX >= WIDTH - 1 || minY <= 0) {
                 continue;
             }
-
             Room newRoom = new Room(topLeft, width,height);
             if (!Room.isOverlapped(rooms, newRoom)) {
                 rooms.add(newRoom);
@@ -90,16 +90,10 @@ public class Engine {
         fillTheWorldWithNothing(finalWorldFrame);
         Room.fillInRooms(finalWorldFrame, rooms);
 
-        return finalWorldFrame;
-    }
+        List<Corridor> corridors = generateCorridors(rooms);
+        drawCorridors(finalWorldFrame, corridors);
 
-    public static void testRandom() {
-        Random rand = new Random(1218);
-        int topLeftX = RandomUtils.uniform(rand, WIDTH);
-        int topLeftY = RandomUtils.uniform(rand, HEIGHT);
-        int width = RandomUtils.uniform(rand, WIDTH);
-        int height = RandomUtils.uniform(rand, WIDTH);
-        System.out.println(topLeftX + "\n" + topLeftY + "\n" + width + "\n" + height);
+        return finalWorldFrame;
     }
 
     private static void fillTheWorldWithNothing(TETile[][] world) {
@@ -110,11 +104,85 @@ public class Engine {
         }
     }
 
+    private static void drawCorridors(TETile[][] world, List<Corridor> corridors) {
+        for (Corridor tmpCorridor : corridors) {
+            drawCorridorWithWalls(world, tmpCorridor);
+        }
+    }
+
+    private static void drawCorridorWithWalls(TETile[][] world, Corridor corridor) {
+        int minX = Math.min(corridor.start.x, corridor.end.x);
+        int maxX = Math.max(corridor.start.x, corridor.end.x);
+        int minY = Math.min(corridor.start.y, corridor.end.y);
+        int maxY = Math.max(corridor.start.y, corridor.end.y);
+        if (corridor.isHorizontal) {
+            // 绘制水平走廊及墙壁
+            for (int x = minX - 1; x <= maxX + 1; x++) {
+                for (int y = corridor.start.y - 1; y <= corridor.start.y + corridor.width; y++) {
+                    if (!checkBorder(x, y)) {
+                        return;
+                    }
+                    if (y == corridor.start.y || y == corridor.start.y + corridor.width - 1) {
+                        world[x][y] = Tileset.FLOOR; // 中间部分是地板
+                    } else if (world[x][y] == null || world[x][y] == Tileset.NOTHING) {
+                        world[x][y] = Tileset.WALL; // 周围是墙
+                    }
+                }
+            }
+        } else {
+            // 绘制垂直走廊及墙壁
+            for (int y = minY - 1; y <= maxY + 1; y++) {
+                for (int x = corridor.start.x - 1; x <= corridor.start.x + corridor.width; x++) {
+                    if (!checkBorder(x, y)) {
+                        return;
+                    }
+                    if (x == corridor.start.x || x == corridor.start.x + corridor.width - 1) {
+                        world[x][y] = Tileset.FLOOR; // 中间部分是地板
+                    } else if (world[x][y] == null || world[x][y] == Tileset.NOTHING) {
+                        world[x][y] = Tileset.WALL; // 周围是墙
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean checkBorder(int x, int y) {
+        return x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT;
+    }
+
+    public static List<Corridor> generateCorridors(List<Room> rooms) {
+        List<Room> unconnectedRooms = new ArrayList<>(rooms);
+        List<Corridor> corridors = new ArrayList<>();
+        Room currentRoom = unconnectedRooms.removeFirst(); // 选择第一个房间作为起始点
+
+        while (!unconnectedRooms.isEmpty()) {
+            Room nextRoom = unconnectedRooms.get(rand.nextInt(unconnectedRooms.size())); //在剩下房间里随机选一个
+
+            Position start = getRandomPointInRoom(currentRoom);
+            Position end = getRandomPointInRoom(nextRoom);
+            int width = rand.nextInt(2) + 1; // 随机宽度 1-2
+
+            Corridor horizontal = new Corridor(start, new Position(end.x, start.y), width);
+            Corridor vertical = new Corridor(new Position(end.x, start.y), end, width);
+            corridors.add(horizontal);
+            corridors.add(vertical);
+
+            currentRoom = nextRoom;
+            unconnectedRooms.remove(currentRoom);
+        }
+
+        return corridors;
+    }
+
+    private static Position getRandomPointInRoom(Room room) {
+        int x = rand.nextInt(room.bottomRight.x - room.topLeft.x) + room.topLeft.x;
+        int y = rand.nextInt(room.topLeft.y - room.bottomRight.y) + room.bottomRight.y;
+        return new Position(x, y);
+    }
+
     public static void main(String[] args) {
         TETile[][] world;
         ter.initialize(WIDTH, HEIGHT);
-        //testRandom();
-        //fillTheWorldWithNothing(world);
         world = interactWithInputString("n1218s");
         ter.renderFrame(world);
     }

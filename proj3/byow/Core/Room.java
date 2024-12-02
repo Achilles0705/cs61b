@@ -65,4 +65,12 @@ public class Room {
         }
     }
 
+    public static void connectRoom(int index, Room currentRoom, List<Room> rooms) {
+        List<Room> copyRoomList = rooms;
+        while (!copyRoomList.isEmpty() && index != 0) {
+            Room tmpRoom = copyRoomList.removeFirst();
+            index--;
+        }
+    }
+
 }
