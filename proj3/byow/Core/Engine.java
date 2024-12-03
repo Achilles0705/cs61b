@@ -42,8 +42,83 @@ public class Engine {
         TETile[][] world;
         ter.initialize(WIDTH, HEIGHT);
         world = interactWithInputString('n' + seedString + 's');
-        ter.renderFrame(world);
 
+        Position user = randomObject(world, Tileset.FLOOR, Tileset.AVATAR);
+        Position door = randomObject(world, Tileset.WALL, Tileset.UNLOCKED_DOOR);
+
+        playGame(world, user, door);
+        System.exit(0);
+
+    }
+
+    private static void playGame(TETile[][] world, Position user, Position door) {
+        while (true) {
+            if (StdDraw.hasNextKeyTyped()) { // 优先处理字符输入
+                char c = StdDraw.nextKeyTyped();
+                switch (c) {
+                    case 'w':
+                    case 'W':
+                        if (movable(world, user, 0, 1)) {
+                            world[user.x][user.y] = Tileset.FLOOR;
+                            user.y += 1;
+                            world[user.x][user.y] = Tileset.AVATAR;
+                        }
+                        break;
+                    case 's':
+                    case 'S':
+                        if (movable(world, user, 0, -1)) {
+                            world[user.x][user.y] = Tileset.FLOOR;
+                            user.y -= 1;
+                            world[user.x][user.y] = Tileset.AVATAR;
+                        }
+                        break;
+                    case 'd':
+                    case 'D':
+                        if (movable(world, user, 1, 0)) {
+                            world[user.x][user.y] = Tileset.FLOOR;
+                            user.x += 1;
+                            world[user.x][user.y] = Tileset.AVATAR;
+                        }
+                        break;
+                    case 'a':
+                    case 'A':
+                        if (movable(world, user, -1, 0)) {
+                            world[user.x][user.y] = Tileset.FLOOR;
+                            user.x -= 1;
+                            world[user.x][user.y] = Tileset.AVATAR;
+                        }
+                        break;
+                }
+            } else if (StdDraw.isKeyPressed(27)) { // 检查 ESC 键
+                break; // 退出循环
+            }
+            ter.renderFrame(world);
+            if (user.equal(door)) {
+                StdDraw.pause(1000);
+                break;
+            }
+        }
+    }
+
+    private static boolean movable(TETile[][] world, Position p, int dx, int dy) {
+        int newX = p.x + dx;
+        int newY = p.y + dy;
+        if (illegal(newX, newY) || world[newX][newY] == Tileset.WALL) {
+            return false;
+        }
+        return true;
+    }
+
+    private static Position randomObject(TETile[][] world, TETile replacedTexture,TETile texture) {
+        int randomX = RandomUtils.uniform(rand, 1, WIDTH - 1);
+        int randomY = RandomUtils.uniform(rand, 1, HEIGHT - 1);
+        Position user = new Position(randomX, randomY);
+        while (world[randomX][randomY] != replacedTexture) {
+            randomX = RandomUtils.uniform(rand, 1, WIDTH - 1);
+            randomY = RandomUtils.uniform(rand, 1, HEIGHT - 1);
+        }
+        world[randomX][randomY] = texture;
+        return new Position(randomX, randomY);
     }
 
     private static String inputSeed() {
@@ -52,14 +127,15 @@ public class Engine {
         String tmpString = "";
         drawInTheCenter("");
         while (true) {
-            if (StdDraw.hasNextKeyTyped()) { // 优先处理字符输入
+            if (StdDraw.isKeyPressed('s') || StdDraw.isKeyPressed('S')) { // 检查 s/S 键
+                break; // 退出循环
+            } else if (StdDraw.hasNextKeyTyped()) { // 优先处理字符输入
                 char c = StdDraw.nextKeyTyped();
                 tmpString += c;
                 drawInTheCenter(tmpString);
-            } else if (StdDraw.isKeyPressed(10)) { // 检查 Enter 键
-                break; // 退出循环
             }
         }
+
         return tmpString;
     }
 

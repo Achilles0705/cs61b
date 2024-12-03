@@ -14,5 +14,9 @@ public class Position {
         return new Position(this.x + other.x, this.y + other.y);
     }
 
+    public boolean equal(Position other) {
+        return this.x == other.x && this.y == other.y;
+    }
+
 
 }
