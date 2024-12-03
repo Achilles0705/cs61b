@@ -3,8 +3,11 @@ package byow.Core;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
+import edu.princeton.cs.introcs.StdDraw;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,7 +22,65 @@ public class Engine {
      * Method used for exploring a fresh world. This method should handle all inputs,
      * including inputs from the main menu.
      */
-    public void interactWithKeyboard() {
+    public static void interactWithKeyboard() {
+
+        drawFrame();
+        KeyBoardInput inputSource = new KeyBoardInput();
+        while (inputSource.possibleNextInput()) {
+            char c = inputSource.getNextKey();
+            if (c == 'n' || c == 'N') {
+                break;
+            } else if (c == 'l' || c == 'L') {
+                //加载预存的世界
+            } else if (c == 'q' || c == 'Q') {
+                System.exit(0);
+            }
+        }
+
+        String seedString = inputSeed();
+
+        TETile[][] world;
+        ter.initialize(WIDTH, HEIGHT);
+        world = interactWithInputString('n' + seedString + 's');
+        ter.renderFrame(world);
+
+    }
+
+    private static String inputSeed() {
+        Font font = new Font("Monaco", Font.BOLD, 40);
+        StdDraw.setFont(font);
+        String tmpString = "";
+        drawInTheCenter("");
+        while (true) {
+            if (StdDraw.hasNextKeyTyped()) { // 优先处理字符输入
+                char c = StdDraw.nextKeyTyped();
+                tmpString += c;
+                drawInTheCenter(tmpString);
+            } else if (StdDraw.isKeyPressed(10)) { // 检查 Enter 键
+                break; // 退出循环
+            }
+        }
+        return tmpString;
+    }
+
+    private static void drawInTheCenter(String s) {
+        StdDraw.clear(Color.BLACK);
+        StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2, "Enter Seed:" + s);
+    }
+
+    private static void drawFrame() {
+        StdDraw.setCanvasSize(WIDTH * 16, HEIGHT * 16);
+        StdDraw.setXscale(0, WIDTH);
+        StdDraw.setYscale(0, HEIGHT);
+        StdDraw.clear(Color.BLACK);
+        StdDraw.setPenColor(Color.WHITE);
+
+        Font headFont = new Font("Monaco", Font.BOLD, 40);
+        StdDraw.setFont(headFont);
+        StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2 + 8, "CS61B: THE GAME");
+
+        Font font = new Font("Monaco", Font.PLAIN, 25);
+        StdDraw.setFont(font);
     }
 
     /**
@@ -144,7 +205,6 @@ public class Engine {
                         return;
                     }
                     if (x == minX || x == minX + corridor.width - 1) {
-                        //world[x][y] = Tileset.WATER; // 中间部分是地板
                         world[x][y] = Tileset.FLOOR;
                     } else if (world[x][y] == null || world[x][y] == Tileset.NOTHING) {
                         world[x][y] = Tileset.WALL; // 周围是墙
@@ -160,8 +220,6 @@ public class Engine {
                 }
             }
         }
-        //world[corridor.start.x][corridor.start.y] = Tileset.GRASS;
-        //world[corridor.end.x][corridor.end.y] = Tileset.GRASS;
     }
 
     private static boolean illegal(int x, int y) {
@@ -199,10 +257,11 @@ public class Engine {
     }
 
     public static void main(String[] args) {
-        TETile[][] world;
+        /*TETile[][] world;
         ter.initialize(WIDTH, HEIGHT);
-        world = interactWithInputString("n5197880843569031643s");
-        ter.renderFrame(world);
+        world = interactWithInputString("n1218s");
+        ter.renderFrame(world);*/
+        interactWithKeyboard();
     }
 
 }
