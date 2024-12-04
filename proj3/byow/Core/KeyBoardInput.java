@@ -7,7 +7,7 @@ public class KeyBoardInput {
     private static final boolean PRINT_TYPED_KEYS = false;
     public KeyBoardInput() {
         StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2, "New Game (N)");
-        StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2 - 2, "Load Game (G)");
+        StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2 - 2, "Load Game (L)");
         StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2 - 4, "Quit (Q)");
     }
 

@@ -6,6 +6,10 @@ import byow.TileEngine.Tileset;
 import edu.princeton.cs.introcs.StdDraw;
 
 import java.awt.*;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -16,7 +20,11 @@ public class Engine {
     /* Feel free to change the width and height. */
     public static final int WIDTH = 80;
     public static final int HEIGHT = 30;
+    static Position user;
+    static Position door;
     static Random rand;
+    static String inputString;
+    static File CWD = new File(System.getProperty("user.dir"));
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
@@ -25,26 +33,39 @@ public class Engine {
     public static void interactWithKeyboard() {
 
         drawFrame();
+        //world = interactWithInputString(inputString);
+        TETile[][] world = new TETile[WIDTH][HEIGHT];
         KeyBoardInput inputSource = new KeyBoardInput();
         while (inputSource.possibleNextInput()) {
             char c = inputSource.getNextKey();
             if (c == 'n' || c == 'N') {
+                String seedString = inputSeed();
+                inputString = 'n' + seedString;
+                System.out.println(inputString);
+                world = interactWithInputString(inputString + 's' + 'w');
                 break;
             } else if (c == 'l' || c == 'L') {
                 //加载预存的世界
+                File stagedInputString = join(CWD, "inputString");
+                inputString = readContentsAsString(stagedInputString);
+                world = interactWithInputString(inputString);
+                //System.out.println(inputString);
+                break;
             } else if (c == 'q' || c == 'Q') {
                 System.exit(0);
             }
         }
 
-        String seedString = inputSeed();
-
-        TETile[][] world;
+        //TETile[][] world = new TETile[WIDTH][HEIGHT];
+        //Position user = randomObject(world, Tileset.FLOOR, Tileset.AVATAR);
+        //Position door = randomObject(world, Tileset.WALL, Tileset.UNLOCKED_DOOR);
+        
+        //String seedString = inputSeed();
+        //inputString = 'n' + seedString + 's';
         ter.initialize(WIDTH, HEIGHT);
-        world = interactWithInputString('n' + seedString + 's');
 
-        Position user = randomObject(world, Tileset.FLOOR, Tileset.AVATAR);
-        Position door = randomObject(world, Tileset.WALL, Tileset.UNLOCKED_DOOR);
+        //Position user = randomObject(world, Tileset.FLOOR, Tileset.AVATAR);
+        //Position door = randomObject(world, Tileset.WALL, Tileset.UNLOCKED_DOOR);
 
         playGame(world, user, door);
         System.exit(0);
@@ -55,40 +76,10 @@ public class Engine {
         while (true) {
             if (StdDraw.hasNextKeyTyped()) { // 优先处理字符输入
                 char c = StdDraw.nextKeyTyped();
-                switch (c) {
-                    case 'w':
-                    case 'W':
-                        if (movable(world, user, 0, 1)) {
-                            world[user.x][user.y] = Tileset.FLOOR;
-                            user.y += 1;
-                            world[user.x][user.y] = Tileset.AVATAR;
-                        }
-                        break;
-                    case 's':
-                    case 'S':
-                        if (movable(world, user, 0, -1)) {
-                            world[user.x][user.y] = Tileset.FLOOR;
-                            user.y -= 1;
-                            world[user.x][user.y] = Tileset.AVATAR;
-                        }
-                        break;
-                    case 'd':
-                    case 'D':
-                        if (movable(world, user, 1, 0)) {
-                            world[user.x][user.y] = Tileset.FLOOR;
-                            user.x += 1;
-                            world[user.x][user.y] = Tileset.AVATAR;
-                        }
-                        break;
-                    case 'a':
-                    case 'A':
-                        if (movable(world, user, -1, 0)) {
-                            world[user.x][user.y] = Tileset.FLOOR;
-                            user.x -= 1;
-                            world[user.x][user.y] = Tileset.AVATAR;
-                        }
-                        break;
+                if (c != ':') {
+                    inputString += c;
                 }
+                move(world, c);
             } else if (StdDraw.isKeyPressed(27)) { // 检查 ESC 键
                 break; // 退出循环
             }
@@ -97,6 +88,100 @@ public class Engine {
                 StdDraw.pause(1000);
                 break;
             }
+        }
+    }
+
+    private static void move(TETile[][] world, char c) {
+    //private static void move(TETile[][] world, char c, Position user) {
+        switch (c) {
+            case ':':
+                quitAndSave();
+            case 'w':
+            case 'W':
+                if (movable(world, user, 0, 1)) {
+                    world[user.x][user.y] = Tileset.FLOOR;
+                    user.y += 1;
+                    world[user.x][user.y] = Tileset.AVATAR;
+                }
+                break;
+            case 's':
+            case 'S':
+                if (movable(world, user, 0, -1)) {
+                    world[user.x][user.y] = Tileset.FLOOR;
+                    user.y -= 1;
+                    world[user.x][user.y] = Tileset.AVATAR;
+                }
+                break;
+            case 'd':
+            case 'D':
+                if (movable(world, user, 1, 0)) {
+                    world[user.x][user.y] = Tileset.FLOOR;
+                    user.x += 1;
+                    world[user.x][user.y] = Tileset.AVATAR;
+                }
+                break;
+            case 'a':
+            case 'A':
+                if (movable(world, user, -1, 0)) {
+                    world[user.x][user.y] = Tileset.FLOOR;
+                    user.x -= 1;
+                    world[user.x][user.y] = Tileset.AVATAR;
+                }
+                break;
+        }
+    }
+
+    private static void quitAndSave() {
+        while (true) {
+            if (StdDraw.hasNextKeyTyped()) {
+                char next = StdDraw.nextKeyTyped();
+                if (next == 'q' || next == 'Q') {
+                    //File CWD = new File(System.getProperty("user.dir"));
+                    //System.out.println(inputString);
+                    writeContents(join(CWD, "inputString"), inputString);
+                    System.exit(0);
+                }
+            }
+        }
+    }
+
+    private static String readContentsAsString(File file) {
+        return new String(readContents(file), StandardCharsets.UTF_8);
+    }
+
+    private static byte[] readContents(File file) {
+        if (!file.isFile()) {
+            throw new IllegalArgumentException("must be a normal file");
+        }
+        try {
+            return Files.readAllBytes(file.toPath());
+        } catch (IOException excp) {
+            throw new IllegalArgumentException(excp.getMessage());
+        }
+    }
+
+    private static File join(File first, String... others) {
+        return Paths.get(first.getPath(), others).toFile();
+    }
+
+    private static void writeContents(File file, Object... contents) {
+        try {
+            if (file.isDirectory()) {
+                throw
+                        new IllegalArgumentException("cannot overwrite directory");
+            }
+            BufferedOutputStream str =
+                    new BufferedOutputStream(Files.newOutputStream(file.toPath()));
+            for (Object obj : contents) {
+                if (obj instanceof byte[]) {
+                    str.write((byte[]) obj);
+                } else {
+                    str.write(((String) obj).getBytes(StandardCharsets.UTF_8));
+                }
+            }
+            str.close();
+        } catch (IOException | ClassCastException excp) {
+            throw new IllegalArgumentException(excp.getMessage());
         }
     }
 
@@ -112,7 +197,7 @@ public class Engine {
     private static Position randomObject(TETile[][] world, TETile replacedTexture,TETile texture) {
         int randomX = RandomUtils.uniform(rand, 1, WIDTH - 1);
         int randomY = RandomUtils.uniform(rand, 1, HEIGHT - 1);
-        Position user = new Position(randomX, randomY);
+        //Position user = new Position(randomX, randomY);
         while (world[randomX][randomY] != replacedTexture) {
             randomX = RandomUtils.uniform(rand, 1, WIDTH - 1);
             randomY = RandomUtils.uniform(rand, 1, HEIGHT - 1);
@@ -128,6 +213,9 @@ public class Engine {
         drawInTheCenter("");
         while (true) {
             if (StdDraw.isKeyPressed('s') || StdDraw.isKeyPressed('S')) { // 检查 s/S 键
+                while (StdDraw.hasNextKeyTyped()) {
+                    StdDraw.nextKeyTyped();
+                }
                 break; // 退出循环
             } else if (StdDraw.hasNextKeyTyped()) { // 优先处理字符输入
                 char c = StdDraw.nextKeyTyped();
@@ -135,6 +223,8 @@ public class Engine {
                 drawInTheCenter(tmpString);
             }
         }
+
+        //System.out.println(tmpString);
 
         return tmpString;
     }
@@ -190,15 +280,27 @@ public class Engine {
         // that works for many different input types.
 
         long seed = 0;
-        String regex = "n(\\d+)s"; // 正则表达式，括号定义了捕获组
+        String regex = "(?i)n(\\d+)s(.*)"; //正则表达式,忽略大小写
         Pattern pattern = Pattern.compile(regex); // 1. 创建 Pattern 对象
         Matcher matcher = pattern.matcher(input); // 2. 创建 Matcher 对象
+        String seedString = "";
+        String movement = "";
         if (matcher.find()) {  // find() 方法尝试查找第一个匹配项
-            String seedString = matcher.group(1);
+            seedString = matcher.group(1);
+            //System.out.println(seedString);
             seed = Long.parseLong(seedString);
-        } else {
-
+            //System.out.println(seedString);
+            if (matcher.groupCount() >= 2) {
+                movement = matcher.group(2);
+            }
         }
+        if (seedString.isEmpty()) {
+            System.exit(0);
+        }
+        /*if (matcher.groupCount() >= 2) {
+            movement = matcher.group(2);
+        }*/
+        //System.out.println(movement);
 
         rand = new Random(seed);
         List<Room> rooms = new ArrayList<>();
@@ -227,6 +329,14 @@ public class Engine {
 
         List<Corridor> corridors = generateCorridors(rooms);
         drawCorridors(finalWorldFrame, corridors);
+
+        user = randomObject(finalWorldFrame, Tileset.FLOOR, Tileset.AVATAR);
+        door = randomObject(finalWorldFrame, Tileset.WALL, Tileset.UNLOCKED_DOOR);
+        for (int i = 0; i < movement.length(); i++) {
+            char c = movement.charAt(i); // 使用 charAt 方法获取每个字符
+            move(finalWorldFrame, c);
+        }
+
 
         return finalWorldFrame;
     }
