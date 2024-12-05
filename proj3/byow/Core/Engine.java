@@ -33,7 +33,6 @@ public class Engine {
     public static void interactWithKeyboard() {
 
         drawFrame();
-        //world = interactWithInputString(inputString);
         TETile[][] world = new TETile[WIDTH][HEIGHT];
         KeyBoardInput inputSource = new KeyBoardInput();
         while (inputSource.possibleNextInput()) {
@@ -41,31 +40,19 @@ public class Engine {
             if (c == 'n' || c == 'N') {
                 String seedString = inputSeed();
                 inputString = 'n' + seedString;
-                System.out.println(inputString);
                 world = interactWithInputString(inputString + 's' + 'w');
                 break;
-            } else if (c == 'l' || c == 'L') {
-                //加载预存的世界
+            } else if (c == 'l' || c == 'L') {  //加载预存的世界
                 File stagedInputString = join(CWD, "inputString");
                 inputString = readContentsAsString(stagedInputString);
                 world = interactWithInputString(inputString);
-                //System.out.println(inputString);
                 break;
             } else if (c == 'q' || c == 'Q') {
                 System.exit(0);
             }
         }
 
-        //TETile[][] world = new TETile[WIDTH][HEIGHT];
-        //Position user = randomObject(world, Tileset.FLOOR, Tileset.AVATAR);
-        //Position door = randomObject(world, Tileset.WALL, Tileset.UNLOCKED_DOOR);
-        
-        //String seedString = inputSeed();
-        //inputString = 'n' + seedString + 's';
         ter.initialize(WIDTH, HEIGHT);
-
-        //Position user = randomObject(world, Tileset.FLOOR, Tileset.AVATAR);
-        //Position door = randomObject(world, Tileset.WALL, Tileset.UNLOCKED_DOOR);
 
         playGame(world, user, door);
         System.exit(0);
@@ -83,16 +70,60 @@ public class Engine {
             } else if (StdDraw.isKeyPressed(27)) { // 检查 ESC 键
                 break; // 退出循环
             }
-            ter.renderFrame(world);
+            TETile[][] copyWorld = new TETile[WIDTH][HEIGHT];
+            for (int i = 0; i < WIDTH; i++) {
+                for (int j = 0; j < HEIGHT; j++) {
+                    copyWorld[i][j] = world[i][j];
+                }
+            }
+            mistMode(copyWorld, 3);
+            ter.renderFrame(copyWorld);
             if (user.equal(door)) {
-                StdDraw.pause(1000);
+                win();
                 break;
             }
         }
     }
 
+    private static void mistMode(TETile[][] world, int size) {
+        boolean[][] isNotMist = new boolean[WIDTH][HEIGHT];
+        int userX = user.x;
+        int userY = user.y;
+
+        // 设置可见区域，动态调整为 size × size 范围
+        for (int dx = -size; dx <= size; dx++) {
+            for (int dy = -size; dy <= size; dy++) {
+                int nx = userX + dx;
+                int ny = userY + dy;
+
+                // 检查是否在边界内
+                if (!illegal(nx, ny)) {
+                    isNotMist[nx][ny] = true;
+                }
+            }
+        }
+
+        // 遍历整个世界，将不在可见区域的方块设置为 Tileset.NOTHING
+        for (int i = 0; i < WIDTH; i++) {
+            for (int j = 0; j < HEIGHT; j++) {
+                if (!isNotMist[i][j]) {
+                    world[i][j] = Tileset.NOTHING;
+                }
+            }
+        }
+    }
+
+    private static void win() {
+        StdDraw.clear(Color.BLACK);
+        StdDraw.setPenColor(Color.WHITE);
+        Font font = new Font("Monaco", Font.BOLD, 40);
+        StdDraw.setFont(font);
+        StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2, "Congratulations! You win The Game!");
+        StdDraw.show();
+        StdDraw.pause(1000);
+    }
+
     private static void move(TETile[][] world, char c) {
-    //private static void move(TETile[][] world, char c, Position user) {
         switch (c) {
             case ':':
                 quitAndSave();
@@ -136,8 +167,6 @@ public class Engine {
             if (StdDraw.hasNextKeyTyped()) {
                 char next = StdDraw.nextKeyTyped();
                 if (next == 'q' || next == 'Q') {
-                    //File CWD = new File(System.getProperty("user.dir"));
-                    //System.out.println(inputString);
                     writeContents(join(CWD, "inputString"), inputString);
                     System.exit(0);
                 }
@@ -195,15 +224,39 @@ public class Engine {
     }
 
     private static Position randomObject(TETile[][] world, TETile replacedTexture,TETile texture) {
-        int randomX = RandomUtils.uniform(rand, 1, WIDTH - 1);
+        /*int randomX = RandomUtils.uniform(rand, 1, WIDTH - 1);
         int randomY = RandomUtils.uniform(rand, 1, HEIGHT - 1);
-        //Position user = new Position(randomX, randomY);
-        while (world[randomX][randomY] != replacedTexture) {
+        while (world[randomX][randomY] != replacedTexture || !isReachable(world,)) {
             randomX = RandomUtils.uniform(rand, 1, WIDTH - 1);
             randomY = RandomUtils.uniform(rand, 1, HEIGHT - 1);
+        }*/
+
+        Position newPosition;
+        do {
+            int randomX = RandomUtils.uniform(rand, 1, WIDTH - 1);
+            int randomY = RandomUtils.uniform(rand, 1, HEIGHT - 1);
+            newPosition = new Position(randomX, randomY);
+            if (world[newPosition.x][newPosition.y] == replacedTexture && isReachable(world, newPosition)) {
+                break;
+            }
+        //} while (world[newPosition.x][newPosition.y] != replacedTexture || !isReachable(world, newPosition));
+        } while (true);
+
+        world[newPosition.x][newPosition.y] = texture;
+        return newPosition;
+    }
+
+    private static boolean isReachable(TETile[][] world, Position position) {
+        int x = position.x;
+        int y = position.y;
+        int[] dx = {0, 0, 1, -1};
+        int[] dy = {1, -1, 0, 0};
+        for (int i = 0; i < 4; i++) {
+            if (world[x + dx[i]][y + dy[i]] == Tileset.FLOOR) {
+                return true;
+            }
         }
-        world[randomX][randomY] = texture;
-        return new Position(randomX, randomY);
+        return false;
     }
 
     private static String inputSeed() {
@@ -223,8 +276,6 @@ public class Engine {
                 drawInTheCenter(tmpString);
             }
         }
-
-        //System.out.println(tmpString);
 
         return tmpString;
     }
@@ -297,10 +348,6 @@ public class Engine {
         if (seedString.isEmpty()) {
             System.exit(0);
         }
-        /*if (matcher.groupCount() >= 2) {
-            movement = matcher.group(2);
-        }*/
-        //System.out.println(movement);
 
         rand = new Random(seed);
         List<Room> rooms = new ArrayList<>();
@@ -337,7 +384,6 @@ public class Engine {
             move(finalWorldFrame, c);
         }
 
-
         return finalWorldFrame;
     }
 
@@ -360,16 +406,14 @@ public class Engine {
         int maxX = Math.max(corridor.start.x, corridor.end.x);
         int minY = Math.min(corridor.start.y, corridor.end.y);
         int maxY = Math.max(corridor.start.y, corridor.end.y);
-        if (corridor.isHorizontal) {
-            // 绘制水平走廊及墙壁
+        if (corridor.isHorizontal) {    // 绘制水平走廊及墙壁
             for (int x = minX; x <= maxX; x++) {
                 for (int y = minY - 1; y <= minY + corridor.width; y++) {
                     if (illegal(x, y)) {
                         return;
                     }
                     if (y == minY || y == minY + corridor.width - 1) {
-                        //world[x][y] = Tileset.FLOWER; // 中间部分是地板
-                        world[x][y] = Tileset.FLOOR;
+                        world[x][y] = Tileset.FLOOR;    // 中间部分是地板
                     } else if (world[x][y] == null || world[x][y] == Tileset.NOTHING) {
                         world[x][y] = Tileset.WALL; // 周围是墙
                     }
@@ -383,8 +427,7 @@ public class Engine {
                     world[maxX + 1][y] = Tileset.WALL;
                 }
             }
-        } else {
-            // 绘制垂直走廊及墙壁
+        } else {    // 绘制垂直走廊及墙壁
             for (int y = minY; y <= maxY; y++) {
                 for (int x = minX - 1; x <= minX + corridor.width; x++) {
                     if (illegal(x, y)) {
