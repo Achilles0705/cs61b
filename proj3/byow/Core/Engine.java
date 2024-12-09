@@ -52,10 +52,10 @@ public class Engine {
                 world = interactWithInputString(inputString);
                 //System.out.println(inputString);
                 break;
-            } else if (c == 'q' || c == 'Q') {
+            } /*else if (c == 'q' || c == 'Q') {
                 System.exit(0);
                 //quit = true;
-            }
+            }*/
         }
 
         //TETile[][] world = new TETile[WIDTH][HEIGHT];
@@ -463,9 +463,9 @@ public class Engine {
     public static void main(String[] args) {
         /*TETile[][] world;
         ter.initialize(WIDTH, HEIGHT);
-        world = interactWithInputString("ns:q");
-        ter.renderFrame(world);
-         */
+        world = interactWithInputString("n7193300625454684331saaawasdaawdwsd");
+        ter.renderFrame(world);*/
+
         interactWithKeyboard();
     }
 
