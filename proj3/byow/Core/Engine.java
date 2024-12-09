@@ -133,6 +133,9 @@ public class Engine {
 
     private static void quitAndSave() {
         while (true) {
+            if (inputString == null) {
+                inputString = "";
+            }
             //if (StdDraw.hasNextKeyTyped()) {
                 //char next = StdDraw.nextKeyTyped();
                 //if (next == 'q' || next == 'Q') {
@@ -459,8 +462,9 @@ public class Engine {
     public static void main(String[] args) {
         /*TETile[][] world;
         ter.initialize(WIDTH, HEIGHT);
-        world = interactWithInputString("n1218s");
-        ter.renderFrame(world);*/
+        world = interactWithInputString("ns:q");
+        ter.renderFrame(world);
+         */
         interactWithKeyboard();
     }
 
