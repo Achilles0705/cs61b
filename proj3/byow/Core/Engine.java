@@ -92,8 +92,8 @@ public class Engine {
     private static void move(TETile[][] world, char c) {
     //private static void move(TETile[][] world, char c, Position user) {
         switch (c) {
-            case ':':
-                quitAndSave();
+            //case ':':
+                //quitAndSave();
             case 'w':
             case 'W':
                 if (movable(world, user, 0, 1)) {
@@ -129,7 +129,7 @@ public class Engine {
         }
     }
 
-    private static void quitAndSave() {
+    /*private static void quitAndSave() {
         while (true) {
             if (StdDraw.hasNextKeyTyped()) {
                 char next = StdDraw.nextKeyTyped();
@@ -141,6 +141,12 @@ public class Engine {
                 }
             }
         }
+    }*/
+
+    private static void quitAndSave() {
+        // 保存状态并退出程序
+        writeContents(join(CWD, "inputString"), inputString);
+        System.exit(0);
     }
 
     private static String readContentsAsString(File file) {
@@ -330,10 +336,22 @@ public class Engine {
 
         user = randomObject(finalWorldFrame, Tileset.FLOOR, Tileset.AVATAR);
         door = randomObject(finalWorldFrame, Tileset.WALL, Tileset.UNLOCKED_DOOR);
+
         for (int i = 0; i < movement.length(); i++) {
-            char c = movement.charAt(i); // 使用 charAt 方法获取每个字符
+            char c = movement.charAt(i);
+            if (c == ':') {
+                if (i + 1 < movement.length() && (movement.charAt(i + 1) == 'q' || movement.charAt(i + 1) == 'Q')) {
+                    quitAndSave();
+                    break;
+                }
+            }
             move(finalWorldFrame, c);
         }
+
+        /*for (int i = 0; i < movement.length(); i++) {
+            char c = movement.charAt(i); // 使用 charAt 方法获取每个字符
+            move(finalWorldFrame, c);
+        }*/
 
 
         return finalWorldFrame;
