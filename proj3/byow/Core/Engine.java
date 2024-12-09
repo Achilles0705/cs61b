@@ -25,7 +25,7 @@ public class Engine {
     static Random rand;
     static String inputString;
     static File CWD = new File(System.getProperty("user.dir"));
-    //private static boolean quit = false;
+    static boolean quit = false;
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
@@ -70,12 +70,12 @@ public class Engine {
         //Position door = randomObject(world, Tileset.WALL, Tileset.UNLOCKED_DOOR);
 
         playGame(world, user, door);
-        System.exit(0);
+        //System.exit(0);
 
     }
 
     private static void playGame(TETile[][] world, Position user, Position door) {
-        while (true) {
+        while (!quit) {
             if (StdDraw.hasNextKeyTyped()) { // 优先处理字符输入
                 char c = StdDraw.nextKeyTyped();
                 if (c != ':') {
@@ -141,7 +141,8 @@ public class Engine {
                 //if (next == 'q' || next == 'Q') {
                 File CWD = new File(System.getProperty("user.dir"));
                 writeContents(join(CWD, "inputString.txt"), inputString);
-                System.exit(0);
+                //System.exit(0);
+                quit = true;
             //}
         }
     }
