@@ -76,7 +76,7 @@ public class Engine {
                     copyWorld[i][j] = world[i][j];
                 }
             }
-            mistMode(copyWorld, 3);
+            //mistMode(copyWorld, 3);
             ter.renderFrame(copyWorld);
             if (user.equal(door)) {
                 win();
@@ -458,7 +458,10 @@ public class Engine {
     public static List<Corridor> generateCorridors(List<Room> rooms) {
         List<Room> unconnectedRooms = new ArrayList<>(rooms);
         List<Corridor> corridors = new ArrayList<>();
-        Room currentRoom = unconnectedRooms.remove(0); // 选择第一个房间作为起始点
+        Room currentRoom = null;
+        if (!unconnectedRooms.isEmpty()) {
+            currentRoom = unconnectedRooms.remove(0); // 选择第一个房间作为起始点
+        }
 
         while (!unconnectedRooms.isEmpty()) {
             Room nextRoom = unconnectedRooms.get(rand.nextInt(unconnectedRooms.size())); //在剩下房间里随机选一个
