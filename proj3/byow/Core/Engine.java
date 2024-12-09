@@ -133,16 +133,13 @@ public class Engine {
 
     private static void quitAndSave() {
         while (true) {
-            if (StdDraw.hasNextKeyTyped()) {
-                char next = StdDraw.nextKeyTyped();
-                if (next == 'q' || next == 'Q') {
-                    //File CWD = new File(System.getProperty("user.dir"));
-                    //System.out.println(inputString);
-                    writeContents(join(CWD, "inputString.txt"), inputString);
-                    //System.exit(0);
-                    return;
-                }
-            }
+            //if (StdDraw.hasNextKeyTyped()) {
+                //char next = StdDraw.nextKeyTyped();
+                //if (next == 'q' || next == 'Q') {
+                File CWD = new File(System.getProperty("user.dir"));
+                writeContents(join(CWD, "inputString.txt"), inputString);
+                System.exit(0);
+            //}
         }
     }
 
