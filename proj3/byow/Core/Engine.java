@@ -46,7 +46,8 @@ public class Engine {
                 break;
             } else if (c == 'l' || c == 'L') {
                 //加载预存的世界
-                File stagedInputString = join(CWD, "inputString");
+                //File stagedInputString = join(CWD, "inputString");
+                File stagedInputString = Paths.get("inputString").toFile();
                 inputString = readContentsAsString(stagedInputString);
                 world = interactWithInputString(inputString);
                 //System.out.println(inputString);
@@ -92,8 +93,8 @@ public class Engine {
     private static void move(TETile[][] world, char c) {
     //private static void move(TETile[][] world, char c, Position user) {
         switch (c) {
-            //case ':':
-                //quitAndSave();
+            case ':':
+                quitAndSave();
             case 'w':
             case 'W':
                 if (movable(world, user, 0, 1)) {
@@ -145,7 +146,9 @@ public class Engine {
 
     private static void quitAndSave() {
         // 保存状态并退出程序
-        writeContents(join(CWD, "inputString"), inputString);
+        //writeContents(join(CWD, "inputString"), inputString);
+        File inputFile = new File("inputString");
+        writeContents(inputFile, inputString);
         System.exit(0);
     }
 
