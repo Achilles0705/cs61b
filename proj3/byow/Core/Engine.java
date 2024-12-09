@@ -294,9 +294,9 @@ public class Engine {
                 movement = matcher.group(2);
             }
         }
-        if (seedString.isEmpty()) {
+       /*if (seedString.isEmpty()) {
             System.exit(0);
-        }
+        }*/
         /*if (matcher.groupCount() >= 2) {
             movement = matcher.group(2);
         }*/
