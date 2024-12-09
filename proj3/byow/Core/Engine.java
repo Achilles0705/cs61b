@@ -41,7 +41,7 @@ public class Engine {
             if (c == 'n' || c == 'N') {
                 String seedString = inputSeed();
                 inputString = 'n' + seedString;
-                System.out.println(inputString);
+                //System.out.println(inputString);
                 world = interactWithInputString(inputString + 's' + 'w');
                 break;
             } else if (c == 'l' || c == 'L') {
@@ -80,8 +80,6 @@ public class Engine {
                     inputString += c;
                 }
                 move(world, c);
-            } else if (StdDraw.isKeyPressed(27)) { // 检查 ESC 键
-                break; // 退出循环
             }
             ter.renderFrame(world);
             if (user.equal(door)) {
@@ -94,8 +92,8 @@ public class Engine {
     private static void move(TETile[][] world, char c) {
     //private static void move(TETile[][] world, char c, Position user) {
         switch (c) {
-            //case ':':
-                //quitAndSave();
+            case ':':
+                quitAndSave();
             case 'w':
             case 'W':
                 if (movable(world, user, 0, 1)) {
@@ -450,29 +448,7 @@ public class Engine {
         ter.initialize(WIDTH, HEIGHT);
         world = interactWithInputString("n1218s");
         ter.renderFrame(world);*/
-        //interactWithKeyboard();
-
-        String input = "n8757316999718208433ssaswssw";
-        TETile[][] world1 = interactWithInputString(input);
-        TETile[][] world2 = interactWithInputString(input);
-
-        // 比较两个世界是否相同
-        boolean areEqual = true;
-        for (int x = 0; x < WIDTH; x++) {
-            for (int y = 0; y < HEIGHT; y++) {
-                if (world1[x][y] != world2[x][y]) {
-                    areEqual = false;
-                    break;
-                }
-            }
-        }
-
-        if (areEqual) {
-            System.out.println("Worlds are equal!");
-        } else {
-            System.out.println("Worlds are different!"); // 如果输出这个，说明你的 interactWithInputString 方法有问题
-        }
-
+        interactWithKeyboard();
     }
 
 }
