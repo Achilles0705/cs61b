@@ -70,7 +70,7 @@ public class Engine {
         //Position door = randomObject(world, Tileset.WALL, Tileset.UNLOCKED_DOOR);
 
         playGame(world, user, door);
-        //System.exit(0);
+        System.exit(0);
 
     }
 
@@ -132,7 +132,7 @@ public class Engine {
     }
 
     private static void quitAndSave() {
-        while (true) {
+        //while (true) {
             if (inputString == null) {
                 inputString = "";
             }
@@ -144,7 +144,7 @@ public class Engine {
                 //System.exit(0);
                 quit = true;
             //}
-        }
+        //}
     }
 
 
