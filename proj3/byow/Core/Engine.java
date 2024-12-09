@@ -25,6 +25,7 @@ public class Engine {
     static Random rand;
     static String inputString;
     static File CWD = new File(System.getProperty("user.dir"));
+    //private static boolean quit = false;
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
@@ -46,14 +47,14 @@ public class Engine {
                 break;
             } else if (c == 'l' || c == 'L') {
                 //加载预存的世界
-                //File stagedInputString = join(CWD, "inputString");
-                File stagedInputString = Paths.get("inputString").toFile();
+                File stagedInputString = join(CWD, "inputString.txt");
                 inputString = readContentsAsString(stagedInputString);
                 world = interactWithInputString(inputString);
                 //System.out.println(inputString);
                 break;
             } else if (c == 'q' || c == 'Q') {
                 System.exit(0);
+                //quit = true;
             }
         }
 
@@ -130,27 +131,21 @@ public class Engine {
         }
     }
 
-    /*private static void quitAndSave() {
+    private static void quitAndSave() {
         while (true) {
             if (StdDraw.hasNextKeyTyped()) {
                 char next = StdDraw.nextKeyTyped();
                 if (next == 'q' || next == 'Q') {
                     //File CWD = new File(System.getProperty("user.dir"));
                     //System.out.println(inputString);
-                    writeContents(join(CWD, "inputString"), inputString);
-                    System.exit(0);
+                    writeContents(join(CWD, "inputString.txt"), inputString);
+                    //System.exit(0);
+                    return;
                 }
             }
         }
-    }*/
-
-    private static void quitAndSave() {
-        // 保存状态并退出程序
-        //writeContents(join(CWD, "inputString"), inputString);
-        File inputFile = new File("inputString");
-        writeContents(inputFile, inputString);
-        System.exit(0);
     }
+
 
     private static String readContentsAsString(File file) {
         return new String(readContents(file), StandardCharsets.UTF_8);
@@ -338,7 +333,7 @@ public class Engine {
         drawCorridors(finalWorldFrame, corridors);
 
         user = randomObject(finalWorldFrame, Tileset.FLOOR, Tileset.AVATAR);
-        door = randomObject(finalWorldFrame, Tileset.WALL, Tileset.UNLOCKED_DOOR);
+        door = randomObject(finalWorldFrame, Tileset.WALL, Tileset.LOCKED_DOOR);
 
         for (int i = 0; i < movement.length(); i++) {
             char c = movement.charAt(i);
