@@ -416,9 +416,7 @@ public class Engine {
         List<Room> unconnectedRooms = new ArrayList<>(rooms);
         List<Corridor> corridors = new ArrayList<>();
         Room currentRoom = null;
-        if (!unconnectedRooms.isEmpty()) {
-            currentRoom = unconnectedRooms.remove(0); // 选择第一个房间作为起始点
-        }
+        currentRoom = unconnectedRooms.remove(0); // 选择第一个房间作为起始点
 
         while (!unconnectedRooms.isEmpty()) {
             Room nextRoom = unconnectedRooms.get(rand.nextInt(unconnectedRooms.size())); //在剩下房间里随机选一个
