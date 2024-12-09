@@ -304,7 +304,7 @@ public class Engine {
 
         rand = new Random(seed);
         List<Room> rooms = new ArrayList<>();
-        int roomNum = RandomUtils.uniform(rand, 2, 20);
+        int roomNum = RandomUtils.uniform(rand, 5, 20);
         for (int i = 0; i < roomNum; i++) {
             Position topLeft = new Position(0, 0);
             topLeft.x = RandomUtils.uniform(rand, 1, WIDTH - 1);
@@ -416,7 +416,9 @@ public class Engine {
         List<Room> unconnectedRooms = new ArrayList<>(rooms);
         List<Corridor> corridors = new ArrayList<>();
         Room currentRoom = null;
-        currentRoom = unconnectedRooms.remove(0); // 选择第一个房间作为起始点
+        if (!unconnectedRooms.isEmpty()) {
+            currentRoom = unconnectedRooms.remove(0); // 选择第一个房间作为起始点
+        }
 
         while (!unconnectedRooms.isEmpty()) {
             Room nextRoom = unconnectedRooms.get(rand.nextInt(unconnectedRooms.size())); //在剩下房间里随机选一个
@@ -448,7 +450,29 @@ public class Engine {
         ter.initialize(WIDTH, HEIGHT);
         world = interactWithInputString("n1218s");
         ter.renderFrame(world);*/
-        interactWithKeyboard();
+        //interactWithKeyboard();
+
+        String input = "n8757316999718208433ssaswssw";
+        TETile[][] world1 = interactWithInputString(input);
+        TETile[][] world2 = interactWithInputString(input);
+
+        // 比较两个世界是否相同
+        boolean areEqual = true;
+        for (int x = 0; x < WIDTH; x++) {
+            for (int y = 0; y < HEIGHT; y++) {
+                if (world1[x][y] != world2[x][y]) {
+                    areEqual = false;
+                    break;
+                }
+            }
+        }
+
+        if (areEqual) {
+            System.out.println("Worlds are equal!");
+        } else {
+            System.out.println("Worlds are different!"); // 如果输出这个，说明你的 interactWithInputString 方法有问题
+        }
+
     }
 
 }
