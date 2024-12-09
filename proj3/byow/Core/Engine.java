@@ -94,8 +94,8 @@ public class Engine {
     private static void move(TETile[][] world, char c) {
     //private static void move(TETile[][] world, char c, Position user) {
         switch (c) {
-            case ':':
-                quitAndSave();
+            //case ':':
+                //quitAndSave();
             case 'w':
             case 'W':
                 if (movable(world, user, 0, 1)) {
