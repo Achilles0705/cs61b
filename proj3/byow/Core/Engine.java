@@ -64,9 +64,16 @@ public class Engine {
         while (true) {
             if (StdDraw.hasNextKeyTyped()) { // 优先处理字符输入
                 char c = StdDraw.nextKeyTyped();
-                if (c != ':') {
+                /*if (c != ':') {
                     inputString += c;
+                }*/
+                char lastInput = inputString.charAt(inputString.length() - 1);
+                if (lastInput == ':' && (c == 'q' || c == 'Q')) {
+                    String newString = inputString.substring(0, inputString.length() - 1);  //去掉最后的冒号
+                    writeContents(join(CWD, "inputString.txt"), newString);
+                    System.exit(0);
                 }
+                inputString += c;
                 move(world, c);
             } else if (StdDraw.isKeyPressed(27)) { // 检查 ESC 键
                 break; // 退出循环
@@ -138,8 +145,8 @@ public class Engine {
 
     private static void move(TETile[][] world, char c) {
         switch (c) {
-            case ':':
-                quitAndSave();
+            //case ':':
+                //quitAndSave();
             case 'w':
             case 'W':
                 if (movable(world, user, 0, 1)) {
@@ -175,7 +182,7 @@ public class Engine {
         }
     }
 
-    private static void quitAndSave() {
+    /*private static void quitAndSave() {
         while (true) {
             if (StdDraw.hasNextKeyTyped()) {
                 char next = StdDraw.nextKeyTyped();
@@ -185,7 +192,7 @@ public class Engine {
                 }
             }
         }
-    }
+    }*/
 
     private static String readContentsAsString(File file) {
         return new String(readContents(file), StandardCharsets.UTF_8);
