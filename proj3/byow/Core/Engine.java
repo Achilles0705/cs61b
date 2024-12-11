@@ -84,12 +84,21 @@ public class Engine {
                     copyWorld[i][j] = world[i][j];
                 }
             }
-            mistMode(copyWorld, 5);
-            ter.renderFrame(copyWorld);
-            if (user.equal(door)) {
+            //mistMode(copyWorld, 8);
+            FogMode.mistMode(copyWorld, 5);
+            if (!FogMode.checkFogTimer()) {
+                ter.renderFrame(copyWorld);
+            } else {
+                ter.renderFrame(world);
+            }
+
+            //ter.renderFrame(copyWorld);
+
+            /*if (user.equal(door)) {
                 win();
                 break;
-            }
+            }*/
+            checkWin();
         }
     }
 
@@ -105,13 +114,13 @@ public class Engine {
         //StdDraw.show();
     }
 
-    private static void mistMode(TETile[][] world, int size) {
+    /*private static void mistMode(TETile[][] world, int size) {
         boolean[][] isNotMist = new boolean[WIDTH][HEIGHT];
         int userX = user.x;
         int userY = user.y;
 
         // 设置可见区域，动态调整为 size × size 范围
-        for (int dx = -size; dx <= size; dx++) {
+        /**for (int dx = -size; dx <= size; dx++) {
             for (int dy = -size; dy <= size; dy++) {
                 int nx = userX + dx;
                 int ny = userY + dy;
@@ -123,6 +132,33 @@ public class Engine {
             }
         }
 
+        Queue<Position> queue = new LinkedList<>();
+        queue.offer(new Position(userX, userY));
+        isNotMist[userX][userY] = true;
+
+        int[][] directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+
+        int steps = 0;
+        while (steps < size && !queue.isEmpty()) {
+            int levelSize = queue.size();
+            for (int i = 0; i < levelSize; i++) {
+                Position current = queue.poll();
+                int x = current.x;
+                int y = current.y;
+
+                for (int[] dir : directions) {
+                    int newX = x + dir[0];
+                    int newY = y + dir[1];
+
+                    if (!illegal(newX, newY) && !isNotMist[newX][newY]) {
+                        isNotMist[newX][newY] = true;
+                        queue.offer(new Position(newX, newY));
+                    }
+                }
+            }
+            steps++;
+        }
+
         // 遍历整个世界，将不在可见区域的方块设置为 Tileset.NOTHING
         for (int i = 0; i < WIDTH; i++) {
             for (int j = 0; j < HEIGHT; j++) {
@@ -131,22 +167,31 @@ public class Engine {
                 }
             }
         }
-    }
+    } */
 
-    private static void win() {
-        StdDraw.clear(Color.BLACK);
-        StdDraw.setPenColor(Color.WHITE);
-        Font font = new Font("Monaco", Font.BOLD, 40);
-        StdDraw.setFont(font);
-        StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2, "Congratulations! You win The Game!");
-        StdDraw.show();
-        StdDraw.pause(1000);
+    private static void checkWin() {
+        if (user.equal(door)) {
+            StdDraw.clear(Color.BLACK);
+            StdDraw.setPenColor(Color.WHITE);
+            Font font = new Font("Monaco", Font.BOLD, 40);
+            StdDraw.setFont(font);
+            StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2, "Congratulations! You win The Game!");
+            StdDraw.show();
+            StdDraw.pause(1000);
+            System.exit(0);
+        }
     }
 
     private static void move(TETile[][] world, char c) {
         switch (c) {
             //case ':':
                 //quitAndSave();
+            case 'r':
+            case 'R':
+                //ter.renderFrame(world);
+                //StdDraw.pause(1000);
+                FogMode.toggleFogMode();
+                break;
             case 'w':
             case 'W':
                 if (movable(world, user, 0, 1)) {
