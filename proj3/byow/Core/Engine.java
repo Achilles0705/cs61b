@@ -24,7 +24,7 @@ public class Engine {
     static Position door;
     static Random rand;
     static String inputString;
-    static File CWD = new File(System.getProperty("user.dir"));
+    static private final File CWD = new File(System.getProperty("user.dir"));
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
@@ -43,7 +43,7 @@ public class Engine {
                 world = interactWithInputString(inputString + 's' + 'w');
                 break;
             } else if (c == 'l' || c == 'L') {  //加载预存的世界
-                File stagedInputString = join(CWD, "inputString");
+                File stagedInputString = join(CWD, "inputString.txt");
                 inputString = readContentsAsString(stagedInputString);
                 world = interactWithInputString(inputString);
                 break;
@@ -60,6 +60,7 @@ public class Engine {
     }
 
     private static void playGame(TETile[][] world, Position user, Position door) {
+        //String lastTileTexture = ""; // 在方法内维护材质状态
         while (true) {
             if (StdDraw.hasNextKeyTyped()) { // 优先处理字符输入
                 char c = StdDraw.nextKeyTyped();
@@ -76,13 +77,25 @@ public class Engine {
                     copyWorld[i][j] = world[i][j];
                 }
             }
-            //mistMode(copyWorld, 3);
+            mistMode(copyWorld, 5);
             ter.renderFrame(copyWorld);
             if (user.equal(door)) {
                 win();
                 break;
             }
         }
+    }
+
+    public static void getMouse(TETile[][] world) {
+        int tileX = (int) StdDraw.mouseX();
+        int tileY = (int) StdDraw.mouseY();
+        String currentTileTexture = "";
+        if (!illegal(tileX, tileY)) {
+            currentTileTexture = world[tileX][tileY].description();
+        }
+        StdDraw.setPenColor(Color.WHITE);
+        StdDraw.textLeft(1, HEIGHT - 1, "Material: " + currentTileTexture);
+        //StdDraw.show();
     }
 
     private static void mistMode(TETile[][] world, int size) {
@@ -167,7 +180,7 @@ public class Engine {
             if (StdDraw.hasNextKeyTyped()) {
                 char next = StdDraw.nextKeyTyped();
                 if (next == 'q' || next == 'Q') {
-                    writeContents(join(CWD, "inputString"), inputString);
+                    writeContents(join(CWD, "inputString.txt"), inputString);
                     System.exit(0);
                 }
             }
@@ -351,7 +364,7 @@ public class Engine {
 
         rand = new Random(seed);
         List<Room> rooms = new ArrayList<>();
-        int roomNum = RandomUtils.uniform(rand, 2, 20);
+        int roomNum = RandomUtils.uniform(rand, 5, 20);
         for (int i = 0; i < roomNum; i++) {
             Position topLeft = new Position(0, 0);
             topLeft.x = RandomUtils.uniform(rand, 1, WIDTH - 1);
@@ -451,7 +464,7 @@ public class Engine {
         }
     }
 
-    private static boolean illegal(int x, int y) {
+    public static boolean illegal(int x, int y) {
         return x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT;
     }
 
@@ -486,6 +499,10 @@ public class Engine {
         int x = rand.nextInt(room.bottomRight.x - room.topLeft.x) + room.topLeft.x;
         int y = rand.nextInt(room.topLeft.y - room.bottomRight.y) + room.bottomRight.y;
         return new Position(x, y);
+    }
+
+    public void interactWithRemoteClient(String portNumber) {
+
     }
 
     public static void main(String[] args) {

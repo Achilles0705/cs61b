@@ -1,5 +1,6 @@
 package byow.TileEngine;
 
+import byow.Core.Engine;
 import edu.princeton.cs.introcs.StdDraw;
 
 import java.awt.Color;
@@ -96,6 +97,7 @@ public class TERenderer {
                 world[x][y].draw(x + xOffset, y + yOffset);
             }
         }
+        Engine.getMouse(world);
         StdDraw.show();
     }
 }

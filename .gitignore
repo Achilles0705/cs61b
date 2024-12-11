@@ -5,4 +5,4 @@ lib/
 out/
 .capers
 sentinel
-inputString
+inputString.txt
