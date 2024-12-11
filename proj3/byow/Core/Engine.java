@@ -365,9 +365,9 @@ public class Engine {
                 movement = matcher.group(2);
             }
         }
-        if (seedString.isEmpty()) {
+        /*if (seedString.isEmpty()) {
             System.exit(0);
-        }
+        }*/
 
         rand = new Random(seed);
         List<Room> rooms = new ArrayList<>();
