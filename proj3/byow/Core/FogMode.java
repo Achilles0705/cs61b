@@ -11,13 +11,13 @@ import static byow.Core.Engine.*;
 public class FogMode {
 
     private static long fogDisabledTime = 0;
-    private static final long FOG_DURATION = 1000; // 1秒
+    private static final long FOG_DURATION = 300; // 1秒
     private static boolean fogEnabled = true;
     private static int cnt = 0;
-    private static final int MAX_TIMES = 3;
+    private static final int MAX_TIMES = 100;
 
     public static void toggleFogMode() {
-        if (cnt == 3) {
+        if (cnt == MAX_TIMES) {
             System.out.println("清空迷雾次数已用尽");
             return;
         }
@@ -60,7 +60,7 @@ public class FogMode {
                     int newX = x + dir[0];
                     int newY = y + dir[1];
 
-                    if (!illegal(newX, newY) && !isNotMist[newX][newY]) {
+                    if (!illegal(newX, newY) && !isNotMist[newX][newY] && world[x][y] != Tileset.WALL) {
                         isNotMist[newX][newY] = true;
                         queue.offer(new Position(newX, newY));
                     }

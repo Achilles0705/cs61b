@@ -5,6 +5,7 @@ import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 import edu.princeton.cs.introcs.StdDraw;
 
+import javax.sound.sampled.Clip;
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +25,8 @@ public class Engine {
     static Position door;
     static Random rand;
     static String inputString;
+    private static Clip BGMClip;
+    private static Clip MenuClip;
     static private final File CWD = new File(System.getProperty("user.dir"));
 
     /**
@@ -35,6 +38,7 @@ public class Engine {
         drawFrame();
         TETile[][] world = new TETile[WIDTH][HEIGHT];
         KeyBoardInput inputSource = new KeyBoardInput();
+        MenuClip = SoundPlayer.loopMusic("menu.wav");
         while (inputSource.possibleNextInput()) {
             char c = inputSource.getNextKey();
             if (c == 'n' || c == 'N') {
@@ -60,7 +64,6 @@ public class Engine {
     }
 
     private static void playGame(TETile[][] world, Position user, Position door) {
-        //String lastTileTexture = ""; // 在方法内维护材质状态
         while (true) {
             if (StdDraw.hasNextKeyTyped()) { // 优先处理字符输入
                 char c = StdDraw.nextKeyTyped();
@@ -84,7 +87,6 @@ public class Engine {
                     copyWorld[i][j] = world[i][j];
                 }
             }
-            //mistMode(copyWorld, 8);
             FogMode.mistMode(copyWorld, 5);
             if (!FogMode.checkFogTimer()) {
                 ter.renderFrame(copyWorld);
@@ -92,12 +94,6 @@ public class Engine {
                 ter.renderFrame(world);
             }
 
-            //ter.renderFrame(copyWorld);
-
-            /*if (user.equal(door)) {
-                win();
-                break;
-            }*/
             checkWin();
         }
     }
@@ -111,63 +107,7 @@ public class Engine {
         }
         StdDraw.setPenColor(Color.WHITE);
         StdDraw.textLeft(1, HEIGHT - 1, "Material: " + currentTileTexture);
-        //StdDraw.show();
     }
-
-    /*private static void mistMode(TETile[][] world, int size) {
-        boolean[][] isNotMist = new boolean[WIDTH][HEIGHT];
-        int userX = user.x;
-        int userY = user.y;
-
-        // 设置可见区域，动态调整为 size × size 范围
-        /**for (int dx = -size; dx <= size; dx++) {
-            for (int dy = -size; dy <= size; dy++) {
-                int nx = userX + dx;
-                int ny = userY + dy;
-
-                // 检查是否在边界内
-                if (!illegal(nx, ny)) {
-                    isNotMist[nx][ny] = true;
-                }
-            }
-        }
-
-        Queue<Position> queue = new LinkedList<>();
-        queue.offer(new Position(userX, userY));
-        isNotMist[userX][userY] = true;
-
-        int[][] directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
-
-        int steps = 0;
-        while (steps < size && !queue.isEmpty()) {
-            int levelSize = queue.size();
-            for (int i = 0; i < levelSize; i++) {
-                Position current = queue.poll();
-                int x = current.x;
-                int y = current.y;
-
-                for (int[] dir : directions) {
-                    int newX = x + dir[0];
-                    int newY = y + dir[1];
-
-                    if (!illegal(newX, newY) && !isNotMist[newX][newY]) {
-                        isNotMist[newX][newY] = true;
-                        queue.offer(new Position(newX, newY));
-                    }
-                }
-            }
-            steps++;
-        }
-
-        // 遍历整个世界，将不在可见区域的方块设置为 Tileset.NOTHING
-        for (int i = 0; i < WIDTH; i++) {
-            for (int j = 0; j < HEIGHT; j++) {
-                if (!isNotMist[i][j]) {
-                    world[i][j] = Tileset.NOTHING;
-                }
-            }
-        }
-    } */
 
     private static void checkWin() {
         if (user.equal(door)) {
@@ -177,19 +117,17 @@ public class Engine {
             StdDraw.setFont(font);
             StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2, "Congratulations! You win The Game!");
             StdDraw.show();
-            StdDraw.pause(1000);
+            SoundPlayer.stopMusic(BGMClip);
+            SoundPlayer.playSound("win.wav");
+            StdDraw.pause(3000);
             System.exit(0);
         }
     }
 
     private static void move(TETile[][] world, char c) {
         switch (c) {
-            //case ':':
-                //quitAndSave();
             case 'r':
             case 'R':
-                //ter.renderFrame(world);
-                //StdDraw.pause(1000);
                 FogMode.toggleFogMode();
                 break;
             case 'w':
@@ -289,12 +227,6 @@ public class Engine {
     }
 
     private static Position randomObject(TETile[][] world, TETile replacedTexture,TETile texture) {
-        /*int randomX = RandomUtils.uniform(rand, 1, WIDTH - 1);
-        int randomY = RandomUtils.uniform(rand, 1, HEIGHT - 1);
-        while (world[randomX][randomY] != replacedTexture || !isReachable(world,)) {
-            randomX = RandomUtils.uniform(rand, 1, WIDTH - 1);
-            randomY = RandomUtils.uniform(rand, 1, HEIGHT - 1);
-        }*/
 
         Position newPosition;
         do {
@@ -394,7 +326,8 @@ public class Engine {
         //
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
-
+        SoundPlayer.stopMusic(MenuClip);
+        BGMClip = SoundPlayer.loopMusic("background.wav");
         long seed = 0;
         String regex = "(?i)n(\\d+)s(.*)"; //正则表达式,忽略大小写
         Pattern pattern = Pattern.compile(regex); // 1. 创建 Pattern 对象
@@ -403,9 +336,7 @@ public class Engine {
         String movement = "";
         if (matcher.find()) {  // find() 方法尝试查找第一个匹配项
             seedString = matcher.group(1);
-            //System.out.println(seedString);
             seed = Long.parseLong(seedString);
-            //System.out.println(seedString);
             if (matcher.groupCount() >= 2) {
                 movement = matcher.group(2);
             }
@@ -443,7 +374,7 @@ public class Engine {
         drawCorridors(finalWorldFrame, corridors);
 
         user = randomObject(finalWorldFrame, Tileset.FLOOR, Tileset.AVATAR);
-        door = randomObject(finalWorldFrame, Tileset.WALL, Tileset.UNLOCKED_DOOR);
+        door = randomObject(finalWorldFrame, Tileset.WALL, Tileset.LOCKED_DOOR);
         for (int i = 0; i < movement.length(); i++) {
             char c = movement.charAt(i); // 使用 charAt 方法获取每个字符
             move(finalWorldFrame, c);
