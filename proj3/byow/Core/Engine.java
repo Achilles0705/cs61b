@@ -1,5 +1,6 @@
 package byow.Core;
 
+import byow.Networking.BYOWServer;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
@@ -88,9 +89,13 @@ public class Engine {
                 }
             }
             FogMode.mistMode(copyWorld, 5);
-            if (!FogMode.checkFogTimer()) {
+            if (FogMode.getFogStatus()) {
+                if (FogMode.checkDoorTimer()) {
+                    copyWorld[door.x][door.y] = Tileset.LOCKED_DOOR;
+                }
                 ter.renderFrame(copyWorld);
-            } else {
+            }
+            else {
                 ter.renderFrame(world);
             }
 
@@ -126,6 +131,10 @@ public class Engine {
 
     private static void move(TETile[][] world, char c) {
         switch (c) {
+            case 'e':
+            case 'E':
+                FogMode.peekDoor();
+                break;
             case 'r':
             case 'R':
                 FogMode.toggleFogMode();
@@ -484,8 +493,118 @@ public class Engine {
         return new Position(x, y);
     }
 
-    public void interactWithRemoteClient(String portNumber) {
+    public void interactWithRemoteClient(String portNumber) throws IOException {
 
+        BYOWServer server = new BYOWServer(Integer.parseInt(portNumber));
+        drawFrameRemote(server);
+        TETile[][] world;
+        //KeyBoardInput inputSource = new KeyBoardInput();
+        MenuClip = SoundPlayer.loopMusic("menu.wav");
+        while (true) {
+            //char c = inputSource.getNextKey();
+            char c = getNextRemoteKey(server);
+            if (c == 'n' || c == 'N') {
+                String seedString = inputSeed();
+                inputString = 'n' + seedString;
+                world = interactWithInputString(inputString + 's' + 'w');
+                break;
+            } else if (c == 'l' || c == 'L') {  //加载预存的世界
+                File stagedInputString = join(CWD, "inputString.txt");
+                inputString = readContentsAsString(stagedInputString);
+                world = interactWithInputString(inputString);
+                break;
+            } else if (c == 'q' || c == 'Q') {
+                //System.exit(0);
+                server.stopConnection();
+            }
+        }
+
+        //ter.initialize(WIDTH, HEIGHT);
+
+        playGameReote(world, user, door, server);
+        System.exit(0);
+
+    }
+
+    private static void drawFrameRemote(BYOWServer server) {
+        server.sendCanvasConfig(WIDTH * 16, HEIGHT * 16);
+        StdDraw.setXscale(0, WIDTH);
+        StdDraw.setYscale(0, HEIGHT);
+        StdDraw.clear(Color.BLACK);
+        StdDraw.setPenColor(Color.WHITE);
+
+        Font headFont = new Font("Monaco", Font.BOLD, 40);
+        StdDraw.setFont(headFont);
+        StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2 + 8, "CS61B: THE GAME");
+        server.sendCanvas();
+
+        Font font = new Font("Monaco", Font.PLAIN, 25);
+        StdDraw.setFont(font);
+        StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2, "New Game (N)");
+        StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2 - 2, "Load Game (L)");
+        StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2 - 4, "Quit (Q)");
+        server.sendCanvas();
+    }
+
+    private static void playGameReote(TETile[][] world, Position user, Position door, BYOWServer server) {
+        while (true) {
+            if (server.clientHasKeyTyped()) { // 优先处理字符输入
+                char c = server.clientNextKeyTyped();
+                char lastInput = inputString.charAt(inputString.length() - 1);
+                if (lastInput == ':' && (c == 'q' || c == 'Q')) {
+                    String newString = inputString.substring(0, inputString.length() - 1);  //去掉最后的冒号
+                    writeContents(join(CWD, "inputString.txt"), newString);
+                    //System.exit(0);
+                    server.stopConnection();
+                }
+                inputString += c;
+                move(world, c);
+            }
+            TETile[][] copyWorld = new TETile[WIDTH][HEIGHT];
+            for (int i = 0; i < WIDTH; i++) {
+                for (int j = 0; j < HEIGHT; j++) {
+                    copyWorld[i][j] = world[i][j];
+                }
+            }
+            FogMode.mistMode(copyWorld, 5);
+            if (FogMode.getFogStatus()) {
+                if (FogMode.checkDoorTimer()) {
+                    copyWorld[door.x][door.y] = Tileset.LOCKED_DOOR;
+                }
+                ter.renderFrame(copyWorld);
+            }
+            else {
+                ter.renderFrame(world);
+            }
+
+            checkWin();
+        }
+    }
+
+    private static void renderRemoteFrame(TETile[][] world, BYOWServer server) {
+        int numXTiles = world.length;
+        int numYTiles = world[0].length;
+        StdDraw.clear(new Color(0, 0, 0));
+        for (int x = 0; x < numXTiles; x += 1) {
+            for (int y = 0; y < numYTiles; y += 1) {
+                if (world[x][y] == null) {
+                    throw new IllegalArgumentException("Tile at position x=" + x + ", y=" + y
+                            + " is null.");
+                }
+                world[x][y].draw(x, y);
+            }
+        }
+        Engine.getMouse(world);
+        //StdDraw.show();
+        server.sendCanvas();
+    }
+
+    private static char getNextRemoteKey(BYOWServer server) {
+        while (true) {
+            if (server.clientHasKeyTyped()) {
+                return Character.toUpperCase(server.clientNextKeyTyped());
+            }
+        }
     }
 
     public static void main(String[] args) {
